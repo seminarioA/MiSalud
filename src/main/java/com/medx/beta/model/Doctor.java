@@ -1,16 +1,10 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.List;
 
 @Entity
 @Table(name = "Doctor")
-
-@Getter
-@Setter
 public class Doctor {
 
     @Id
@@ -44,4 +38,6 @@ public class Doctor {
             inverseJoinColumns = @JoinColumn(name = "Especializacion_id")
     )
     private List<Especializacion> especializaciones;
+
+    // Getters y Setters
 }
