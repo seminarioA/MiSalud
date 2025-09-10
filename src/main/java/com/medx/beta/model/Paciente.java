@@ -1,12 +1,18 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "Paciente")
+
+@Getter
+@Setter
 public class Paciente {
 
     @Id
@@ -39,6 +45,4 @@ public class Paciente {
 
     @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
     private List<CitaMedica> citas;
-
-    // Getters y Setters
 }

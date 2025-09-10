@@ -1,10 +1,16 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
 @Entity
 @Table(name = "Especializacion")
+
+@Getter
+@Setter
 public class Especializacion {
 
     @Id
@@ -19,6 +25,4 @@ public class Especializacion {
 
     @ManyToMany(mappedBy = "especializaciones", fetch = FetchType.LAZY)
     private List<Doctor> doctores;
-
-    // Getters y Setters
 }
