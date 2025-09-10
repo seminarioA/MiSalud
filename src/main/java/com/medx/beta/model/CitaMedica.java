@@ -1,12 +1,18 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Cita_Medica",
         indexes = { @Index(name = "idx_fecha", columnList = "fecha") })
+
+@Getter
+@Setter
 public class CitaMedica {
 
     @Id
@@ -28,6 +34,4 @@ public class CitaMedica {
     @JoinColumn(name = "Paciente_id", nullable = false,
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "fk_Cita_Medica_Paciente1"))
     private Paciente paciente;
-
-    // Getters y Setters
 }
