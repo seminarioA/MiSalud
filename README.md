@@ -49,7 +49,7 @@ docker run -p 8080:8080 medx-app
 ```
 
 ### Acceso al servicio
-- API REST: http://<ip publica>:8080
+- API REST: http://<ip_publica>:8080
 
 ## 💻 Stack
 
