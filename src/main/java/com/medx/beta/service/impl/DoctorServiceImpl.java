@@ -1,5 +1,6 @@
 package com.medx.beta.service.impl;
 
+import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.model.Doctor;
 import com.medx.beta.repository.DoctorRepository;
 import com.medx.beta.service.DoctorService;
@@ -22,7 +23,7 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public Doctor findById(Integer id) {
         return doctorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Doctor no encontrado con id: " + id));
+                .orElseThrow(() -> new NotFoundException("Doctor no encontrado con id: " + id));
     }
 
     @Override
@@ -49,4 +50,3 @@ public class DoctorServiceImpl implements DoctorService {
         doctorRepository.delete(existente);
     }
 }
-
