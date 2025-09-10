@@ -68,9 +68,9 @@ docker run -p 8080:8080 medx-app
 ## 👩🏻‍🔬 Contribuyentes
 
 ### 🧑🏻‍🔬 Alejandro Seminario
-![Arquitecto de Software](https://img.shields.io/badge/Java_Developer-orange)
-![DevOps](https://img.shields.io/badge/Spring_Boot-6DB33F)
-![Ingeniero de Software](https://img.shields.io/badge/Backend-blue)
+![Arquitecto de Software](https://img.shields.io/badge/Arquitecto_de_Software-orange)
+![DevOps](https://img.shields.io/badge/DevOps-purple)
+![Ingeniero de Software](https://img.shields.io/badge/Ingeniero_de_Software-blue)
 
 Redes:
 
