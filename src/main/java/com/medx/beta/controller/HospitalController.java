@@ -9,6 +9,7 @@ import com.medx.beta.service.HospitalService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @RestController
@@ -19,28 +20,29 @@ public class HospitalController {
     private HospitalService hospitalService;
 
     @GetMapping
-    public List<Hospital> getAllHospitales() {
-        return hospitalService.getAllHospitales();
+    public List<Hospital> getAllHospitales() { // nombre del método público puede mantenerse por compatibilidad externa
+        return hospitalService.getAll();
     }
 
     @GetMapping("/{id}")
     public Hospital getHospitalById(@PathVariable Integer id) {
-        return hospitalService.getHospitalById(id);
+        return hospitalService.getById(id);
     }
 
     @PostMapping
-    public Hospital createHospital(@RequestBody Hospital hospital) {
-        return hospitalService.createHospital(hospital);
+    public ResponseEntity<Hospital> createHospital(@RequestBody Hospital hospital) {
+        Hospital created = hospitalService.create(hospital);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
     public Hospital updateHospital(@PathVariable Integer id, @RequestBody Hospital hospital) {
-        return hospitalService.updateHospital(id, hospital);
+        return hospitalService.update(id, hospital);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHospital(@PathVariable Integer id) {
-        hospitalService.deleteHospital(id);
+        hospitalService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

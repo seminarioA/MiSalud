@@ -1,5 +1,6 @@
 package com.medx.beta.service.impl;
 
+import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.model.Paciente;
 import com.medx.beta.repository.PacienteRepository;
 import com.medx.beta.service.PacienteService;
@@ -15,14 +16,14 @@ public class PacienteServiceImpl implements PacienteService {
     private final PacienteRepository pacienteRepository;
 
     @Override
-    public List<Paciente> findAll() {
+    public List<Paciente> getAll() {
         return pacienteRepository.findAll();
     }
 
     @Override
-    public Paciente findById(Integer id) {
+    public Paciente getById(Integer id) {
         return pacienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado con id: " + id));
+                .orElseThrow(() -> new NotFoundException("Paciente no encontrado con id: " + id));
     }
 
     @Override
@@ -33,7 +34,7 @@ public class PacienteServiceImpl implements PacienteService {
 
     @Override
     public Paciente update(Integer id, Paciente paciente) {
-        Paciente existente = findById(id);
+        Paciente existente = getById(id);
         existente.setPrimerNombre(paciente.getPrimerNombre());
         existente.setSegundoNombre(paciente.getSegundoNombre());
         existente.setPrimerApellido(paciente.getPrimerApellido());
@@ -45,9 +46,8 @@ public class PacienteServiceImpl implements PacienteService {
     }
 
     @Override
-    public void delete(Integer id) {
-        Paciente existente = findById(id);
+    public void deleteById(Integer id) {
+        Paciente existente = getById(id);
         pacienteRepository.delete(existente);
     }
 }
-

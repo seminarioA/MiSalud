@@ -18,12 +18,12 @@ public class DoctorController {
 
     @GetMapping
     public ResponseEntity<List<Doctor>> listar() {
-        return ResponseEntity.ok(doctorService.findAll());
+        return ResponseEntity.ok(doctorService.getAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Doctor> obtener(@PathVariable Integer id) {
-        return ResponseEntity.ok(doctorService.findById(id));
+        return ResponseEntity.ok(doctorService.getById(id));
     }
 
     @PostMapping
@@ -39,8 +39,7 @@ public class DoctorController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
-        doctorService.delete(id);
+        doctorService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
-
