@@ -35,6 +35,8 @@ public class HospitalServiceImpl implements HospitalService {
         if (existente != null) {
             existente.setNombre(hospital.getNombre());
             existente.setDescripcion(hospital.getDescripcion());
+            // No actualizamos sedes directamente aqui para evitar desincronizacion
+            // La gestion de sedes se debe hacer a traves de un endpoint específico
             return hospitalRepository.save(existente);
         }
         return null;
@@ -43,5 +45,20 @@ public class HospitalServiceImpl implements HospitalService {
     @Override
     public void deleteHospital(Integer id) {
         hospitalRepository.deleteById(id);
+    }
+    
+    @Override
+    public List<Hospital> findHospitalesByNombre(String nombre) {
+        return hospitalRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+    
+    @Override
+    public boolean existsByNombre(String nombre) {
+        return hospitalRepository.existsByNombreIgnoreCase(nombre);
+    }
+    
+    @Override
+    public boolean existsByNombreAndNotId(String nombre, Integer hospitalId) {
+        return hospitalRepository.existsByNombreIgnoreCaseAndHospitalIdNot(nombre, hospitalId);
     }
 }

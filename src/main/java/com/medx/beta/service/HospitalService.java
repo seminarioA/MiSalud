@@ -13,4 +13,10 @@ public interface HospitalService {
     Hospital updateHospital(Integer id, Hospital hospital);
     //Eliminar un hospital mediante su ID
     void deleteHospital(Integer id);
+    //Buscar hospitales por nombre
+    List<Hospital> findHospitalesByNombre(String nombre);
+    //Verificar si existe un hospital con el nombre dado
+    boolean existsByNombre(String nombre);
+    //Verificar si existe otro hospital con el mismo nombre (excluyendo el hospital con el ID dado)
+    boolean existsByNombreAndNotId(String nombre, Integer hospitalId);
 }
