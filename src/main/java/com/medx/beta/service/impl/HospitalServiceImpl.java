@@ -43,24 +43,10 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
-    public void deleteHospital(Integer id) {
+    public void deleteById(Integer id) {
         Hospital existente = hospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
         hospitalRepository.delete(existente);
     }
-    
-    @Override
-    public List<Hospital> findHospitalesByNombre(String nombre) {
-        return hospitalRepository.findByNombreContainingIgnoreCase(nombre);
-    }
-    
-    @Override
-    public boolean existsByNombre(String nombre) {
-        return hospitalRepository.existsByNombreIgnoreCase(nombre);
-    }
-    
-    @Override
-    public boolean existsByNombreAndNotId(String nombre, Integer hospitalId) {
-        return hospitalRepository.existsByNombreIgnoreCaseAndHospitalIdNot(nombre, hospitalId);
-    }
+
 }
