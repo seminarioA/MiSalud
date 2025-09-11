@@ -21,7 +21,7 @@ public class EspecializacionServiceImpl implements EspecializacionService {
     @Override
     public Especializacion getById(Integer id) {
         return especializacionRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Especializacion no encontrada con id: " + id));
+            .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
     }
 
     @Override
@@ -32,15 +32,28 @@ public class EspecializacionServiceImpl implements EspecializacionService {
 
     @Override
     public Especializacion update(Integer id, Especializacion especializacion) {
-        Especializacion existente = getById(id);
+        Especializacion existente = especializacionRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
+        
         existente.setNombre(especializacion.getNombre());
         existente.setDescripcion(especializacion.getDescripcion());
         return especializacionRepository.save(existente);
     }
 
     @Override
-    public void deleteById(Integer id) {
-        Especializacion existente = getById(id);
+    public void deleteEspecializacion(Integer id) {
+        Especializacion existente = especializacionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
         especializacionRepository.delete(existente);
+    }
+    
+    @Override
+    public boolean existsByNombre(String nombre) {
+        return especializacionRepository.existsByNombreIgnoreCase(nombre);
+    }
+    
+    @Override
+    public boolean existsByNombreAndNotId(String nombre, Integer especializacionId) {
+        return especializacionRepository.existsByNombreIgnoreCaseAndEspecializacionIdNot(nombre, especializacionId);
     }
 }

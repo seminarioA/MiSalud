@@ -33,16 +33,34 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
-    public Hospital update(Integer id, Hospital hospital) {
-        Hospital existente = getById(id); // lanza NotFound si no existe
+    public Hospital update(Integer id, Hospital hospital) { 
+        Hospital existente = hospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
         existente.setNombre(hospital.getNombre());
         existente.setDescripcion(hospital.getDescripcion());
+        // No actualizamos sedes directamente aqui para evitar desincronizacion
         return hospitalRepository.save(existente);
     }
 
     @Override
-    public void deleteById(Integer id) {
-        Hospital existente = getById(id); // valida existencia
+    public void deleteHospital(Integer id) {
+        Hospital existente = hospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
         hospitalRepository.delete(existente);
+    }
+    
+    @Override
+    public List<Hospital> findHospitalesByNombre(String nombre) {
+        return hospitalRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+    
+    @Override
+    public boolean existsByNombre(String nombre) {
+        return hospitalRepository.existsByNombreIgnoreCase(nombre);
+    }
+    
+    @Override
+    public boolean existsByNombreAndNotId(String nombre, Integer hospitalId) {
+        return hospitalRepository.existsByNombreIgnoreCaseAndHospitalIdNot(nombre, hospitalId);
     }
 }
