@@ -1,5 +1,6 @@
 package com.medx.beta.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -44,6 +45,34 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
+        String message = ex.getConstraintViolations().stream()
+                .map(cv -> {
+                    String path = cv.getPropertyPath() != null ? cv.getPropertyPath().toString() : "param";
+                    return path + ": " + cv.getMessage();
+                })
+                .collect(Collectors.joining("; "));
+        ApiError error = ApiError.of(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                message,
+                request.getDescription(false).replace("uri=", "")
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
+        ApiError error = ApiError.of(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex, WebRequest request) {
         ApiError error = ApiError.of(
@@ -59,4 +88,3 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return fe.getField() + ": " + fe.getDefaultMessage();
     }
 }
-
