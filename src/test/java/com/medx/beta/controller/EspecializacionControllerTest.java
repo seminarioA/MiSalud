@@ -15,18 +15,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = EspecializacionController.class)
 @Import({GlobalExceptionHandler.class, EspecializacionControllerTest.ControllerTestConfig.class})
+@WithMockUser(username = "tester", roles = {"USER"})
 class EspecializacionControllerTest {
 
     @Autowired MockMvc mvc;
@@ -77,9 +81,9 @@ class EspecializacionControllerTest {
     void create_ok() throws Exception {
         when(especializacionService.create(any(Especializacion.class))).thenReturn(build(10));
         String body = "{\"nombre\":\"Cardio\",\"descripcion\":\"Corazon\"}";
-        mvc.perform(post("/api/especializaciones").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/especializaciones").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.especializacionId", is(10)));
+                .andExpect(jsonPath("$.especializacion.especializacionId", is(10)));
         verify(especializacionService).create(any(Especializacion.class));
     }
 
@@ -89,18 +93,19 @@ class EspecializacionControllerTest {
         Especializacion updated = build(5); updated.setNombre("Mod");
         when(especializacionService.update(eq(5), any(Especializacion.class))).thenReturn(updated);
         String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/especializaciones/5").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(put("/api/especializaciones/5").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre", is("Mod")));
+                .andExpect(jsonPath("$.especializacion.nombre", is("Mod")));
         verify(especializacionService).update(eq(5), any(Especializacion.class));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {2,7})
-    @DisplayName("DELETE /api/especializaciones/{id} 204")
+    @DisplayName("DELETE /api/especializaciones/{id} 200 eliminado=true")
     void delete_ok(int id) throws Exception {
-        mvc.perform(delete("/api/especializaciones/"+id))
-                .andExpect(status().isNoContent());
+        mvc.perform(delete("/api/especializaciones/"+id).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eliminado", is(true)));
         verify(especializacionService).deleteEspecializacion(id);
     }
 

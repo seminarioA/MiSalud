@@ -15,18 +15,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = HospitalController.class)
 @Import({GlobalExceptionHandler.class, HospitalControllerTest.ControllerTestConfig.class})
+@WithMockUser(username = "tester", roles = {"USER"})
 class HospitalControllerTest {
 
     @Autowired MockMvc mvc;
@@ -66,11 +70,11 @@ class HospitalControllerTest {
     @Test
     @DisplayName("GET /api/hospitales/{id} 404")
     void get_notFound() throws Exception {
-        when(hospitalService.getById(99)).thenThrow(new NotFoundException("Hospital no encontrado"));
+        // El controlador devuelve 404 cuando el servicio retorna null
+        when(hospitalService.getById(99)).thenReturn(null);
         mvc.perform(get("/api/hospitales/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Hospital no encontrado")));
+                .andExpect(jsonPath("$.mensaje", containsString("no existe")));
     }
 
     @Test
@@ -78,9 +82,9 @@ class HospitalControllerTest {
     void create_ok() throws Exception {
         when(hospitalService.create(any(Hospital.class))).thenReturn(build(10));
         String body = "{\"nombre\":\"Nuevo\",\"descripcion\":\"Desc\"}";
-        mvc.perform(post("/api/hospitales").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/hospitales").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.hospitalId", is(10)));
+                .andExpect(jsonPath("$.hospital.hospitalId", is(10)));
         verify(hospitalService).create(any(Hospital.class));
     }
 
@@ -88,20 +92,25 @@ class HospitalControllerTest {
     @DisplayName("PUT /api/hospitales/{id} 200")
     void update_ok() throws Exception {
         Hospital updated = build(5); updated.setNombre("Actualizado");
+        // El controlador valida existencia antes de actualizar
+        when(hospitalService.getById(5)).thenReturn(build(5));
         when(hospitalService.update(eq(5), any(Hospital.class))).thenReturn(updated);
         String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/hospitales/5").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(put("/api/hospitales/5").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre", is("Actualizado")));
+                .andExpect(jsonPath("$.hospital.nombre", is("Actualizado")));
         verify(hospitalService).update(eq(5), any(Hospital.class));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {2,4})
-    @DisplayName("DELETE /api/hospitales/{id} 204")
+    @DisplayName("DELETE /api/hospitales/{id} 200 eliminado con mensaje")
     void delete_ok(int id) throws Exception {
-        mvc.perform(delete("/api/hospitales/"+id))
-                .andExpect(status().isNoContent());
+        // El controlador valida existencia antes de eliminar y responde 200 con mensaje
+        when(hospitalService.getById(id)).thenReturn(build(id));
+        mvc.perform(delete("/api/hospitales/"+id).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensaje", containsString("eliminado")));
         verify(hospitalService).deleteHospital(id);
     }
 
