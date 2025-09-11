@@ -29,7 +29,7 @@ public class HospitalController {
     @GetMapping
     public ResponseEntity<?> getAllHospitales() {
         try {
-            List<Hospital> hospitales = hospitalService.getAllHospitales();
+            List<Hospital> hospitales = hospitalService.getAll();
             if (hospitales.isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("mensaje", "No se encontraron hospitales en la base de datos");
@@ -47,7 +47,7 @@ public class HospitalController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getHospitalById(@PathVariable Integer id) {
         try {
-            Hospital hospital = hospitalService.getHospitalById(id);
+            Hospital hospital = hospitalService.getById(id);
             if (hospital == null) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("mensaje", "El hospital con ID: " + id + " no existe en la base de datos");
@@ -87,7 +87,7 @@ public class HospitalController {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             
-            Hospital nuevoHospital = hospitalService.createHospital(hospital);
+            Hospital nuevoHospital = hospitalService.create(hospital);
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Hospital creado con éxito");
             response.put("hospital", nuevoHospital);
@@ -118,7 +118,7 @@ public class HospitalController {
             }
             
             // Validar si existe el hospital que se quiere actualizar
-            Hospital hospitalExistente = hospitalService.getHospitalById(id);
+            Hospital hospitalExistente = hospitalService.getById(id);
             if (hospitalExistente == null) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("mensaje", "El hospital con ID: " + id + " no existe en la base de datos");
@@ -133,7 +133,7 @@ public class HospitalController {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             
-            Hospital hospitalActualizado = hospitalService.updateHospital(id, hospital);
+            Hospital hospitalActualizado = hospitalService.update(id, hospital);
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Hospital actualizado con éxito");
             response.put("hospital", hospitalActualizado);
@@ -149,7 +149,7 @@ public class HospitalController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteHospital(@PathVariable Integer id) {
         try {
-            Hospital hospital = hospitalService.getHospitalById(id);
+            Hospital hospital = hospitalService.getById(id);
             if (hospital == null) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("mensaje", "El hospital con ID: " + id + " no existe en la base de datos");

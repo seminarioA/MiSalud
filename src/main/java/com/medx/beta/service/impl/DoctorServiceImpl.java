@@ -16,12 +16,12 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
 
     @Override
-    public List<Doctor> findAll() {
+    public List<Doctor> getAll() {
         return doctorRepository.findAll();
     }
 
     @Override
-    public Doctor findById(Integer id) {
+    public Doctor getById(Integer id) {
         return doctorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Doctor no encontrado con id: " + id));
     }
@@ -34,7 +34,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Doctor update(Integer id, Doctor doctor) {
-        Doctor existente = findById(id);
+        Doctor existente = getById(id);
         existente.setPrimerNombre(doctor.getPrimerNombre());
         existente.setSegundoNombre(doctor.getSegundoNombre());
         existente.setPrimerApellido(doctor.getPrimerApellido());
@@ -45,8 +45,8 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public void delete(Integer id) {
-        Doctor existente = findById(id);
+    public void deleteById(Integer id) {
+        Doctor existente = getById(id);
         doctorRepository.delete(existente);
     }
 }

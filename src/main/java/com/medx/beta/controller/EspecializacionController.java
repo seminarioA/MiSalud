@@ -22,13 +22,13 @@ public class EspecializacionController {
     
     @GetMapping
     public ResponseEntity<List<Especializacion>> getAllEspecializaciones() {
-        List<Especializacion> especializaciones = especializacionService.getAllEspecializaciones();
+        List<Especializacion> especializaciones = especializacionService.getAll();
         return ResponseEntity.ok(especializaciones);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Especializacion> getEspecializacionById(@PathVariable Integer id) {
-        Especializacion especializacion = especializacionService.getEspecializacionById(id);
+        Especializacion especializacion = especializacionService.getById(id);
         return ResponseEntity.ok(especializacion);
     }
 
@@ -46,7 +46,7 @@ public class EspecializacionController {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             
-            Especializacion nuevaEspecializacion = especializacionService.createEspecializacion(especializacion);
+            Especializacion nuevaEspecializacion = especializacionService.create(especializacion);
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Especialización creada con éxito");
             response.put("especializacion", nuevaEspecializacion);
@@ -71,7 +71,7 @@ public class EspecializacionController {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             
-            Especializacion actualizadaEspecializacion = especializacionService.updateEspecializacion(id, especializacion);
+            Especializacion actualizadaEspecializacion = especializacionService.update(id, especializacion);
             
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Especialización actualizada con éxito");

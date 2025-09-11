@@ -29,5 +29,8 @@ public class SedeHospital {
     private Hospital hospital;
 
     @OneToMany(mappedBy = "sedeHospital", fetch = FetchType.LAZY)
+
+    /*@JsonIgnore*/
+
     private List<Doctor> doctores;
 }
