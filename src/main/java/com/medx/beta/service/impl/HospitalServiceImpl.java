@@ -34,20 +34,19 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public Hospital update(Integer id, Hospital hospital) { 
-        Hospital existente = hospitalRepository.findById(id).orElse(null);
-        if (existente != null) {
-            existente.setNombre(hospital.getNombre());
-            existente.setDescripcion(hospital.getDescripcion());
-            // No actualizamos sedes directamente aqui para evitar desincronizacion
-            // La gestion de sedes se debe hacer a traves de un endpoint específico
-            return hospitalRepository.save(existente);
-        }
-        return null;
+        Hospital existente = hospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
+        existente.setNombre(hospital.getNombre());
+        existente.setDescripcion(hospital.getDescripcion());
+        // No actualizamos sedes directamente aqui para evitar desincronizacion
+        return hospitalRepository.save(existente);
     }
 
     @Override
     public void deleteHospital(Integer id) {
-        hospitalRepository.deleteById(id);
+        Hospital existente = hospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
+        hospitalRepository.delete(existente);
     }
     
     @Override

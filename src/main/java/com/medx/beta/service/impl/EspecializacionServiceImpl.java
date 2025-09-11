@@ -42,7 +42,9 @@ public class EspecializacionServiceImpl implements EspecializacionService {
 
     @Override
     public void deleteEspecializacion(Integer id) {
-        especializacionRepository.deleteById(id);
+        Especializacion existente = especializacionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
+        especializacionRepository.delete(existente);
     }
     
     @Override
