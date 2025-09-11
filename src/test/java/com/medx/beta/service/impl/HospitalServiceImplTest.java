@@ -46,7 +46,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.findAll()).thenReturn(hospitales);
         
         // Act
-        List<Hospital> resultado = hospitalService.getAllHospitales();
+        List<Hospital> resultado = hospitalService.getAll();
         
         // Assert
         assertNotNull(resultado);
@@ -61,7 +61,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.findById(1)).thenReturn(Optional.of(hospital));
         
         // Act
-        Hospital resultado = hospitalService.getHospitalById(1);
+        Hospital resultado = hospitalService.getById(1);
         
         // Assert
         assertNotNull(resultado);
@@ -76,7 +76,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.findById(99)).thenReturn(Optional.empty());
         
         // Act
-        Hospital resultado = hospitalService.getHospitalById(99);
+        Hospital resultado = hospitalService.getById(99);
         
         // Assert
         assertNull(resultado);
@@ -90,7 +90,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.save(any(Hospital.class))).thenReturn(hospital);
         
         // Act
-        Hospital resultado = hospitalService.createHospital(hospital);
+        Hospital resultado = hospitalService.create(hospital);
         
         // Assert
         assertNotNull(resultado);
@@ -110,7 +110,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.save(any(Hospital.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
         // Act
-        Hospital resultado = hospitalService.updateHospital(1, hospitalActualizado);
+        Hospital resultado = hospitalService.update(1, hospitalActualizado);
         
         // Assert
         assertNotNull(resultado);
@@ -127,7 +127,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.findById(99)).thenReturn(Optional.empty());
         
         // Act
-        Hospital resultado = hospitalService.updateHospital(99, hospital);
+        Hospital resultado = hospitalService.update(99, hospital);
         
         // Assert
         assertNull(resultado);
@@ -175,7 +175,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.save(any(Hospital.class))).thenReturn(hospitalInvalido);
         
         // Act
-        Hospital resultado = hospitalService.createHospital(hospitalInvalido);
+        Hospital resultado = hospitalService.create(hospitalInvalido);
         
         // Assert
         assertNotNull(resultado);
@@ -194,7 +194,7 @@ public class HospitalServiceImplTest {
         when(hospitalRepository.save(any(Hospital.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
         // Act
-        Hospital resultado = hospitalService.updateHospital(1, hospitalInvalido);
+        Hospital resultado = hospitalService.update(1, hospitalInvalido);
         
         // Assert
         assertNotNull(resultado);

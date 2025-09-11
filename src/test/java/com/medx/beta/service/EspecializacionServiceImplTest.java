@@ -101,7 +101,7 @@ class EspecializacionServiceImplTest {
     @DisplayName("deleteById ok")
     void delete_ok() {
         when(repository.findById(1)).thenReturn(Optional.of(especializacion));
-        service.deleteById(1);
+        service.deleteEspecializacion(1);
         verify(repository).delete(especializacion);
     }
 
@@ -109,7 +109,7 @@ class EspecializacionServiceImplTest {
     @DisplayName("deleteById NotFound")
     void delete_notFound() {
         when(repository.findById(5)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.deleteById(5))
+        assertThatThrownBy(() -> service.deleteEspecializacion(5))
                 .isInstanceOf(NotFoundException.class);
     }
 }

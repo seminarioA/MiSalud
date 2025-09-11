@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -100,7 +101,7 @@ class EspecializacionControllerTest {
     void delete_ok(int id) throws Exception {
         mvc.perform(delete("/api/especializaciones/"+id))
                 .andExpect(status().isNoContent());
-        verify(especializacionService).deleteById(id);
+        verify(especializacionService).deleteEspecializacion(id);
     }
 
     @org.springframework.boot.test.context.TestConfiguration
