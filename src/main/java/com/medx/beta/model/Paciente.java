@@ -45,6 +45,4 @@ public class Paciente {
 
     @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
     private List<CitaMedica> citas;
-
-    // Getters y Setters
 }
