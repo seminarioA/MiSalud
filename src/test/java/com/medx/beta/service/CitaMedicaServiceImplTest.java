@@ -83,7 +83,16 @@ class CitaMedicaServiceImplTest {
         nueva.setCosto(new BigDecimal("50.00"));
         nueva.setDoctor(doctor);
         nueva.setPaciente(paciente);
-        when(repository.save(any(CitaMedica.class))).thenAnswer(a -> { CitaMedica c = a.getArgument(0); c.setCitaId(123); return c;});
+        when(repository.save(any(CitaMedica.class))).thenAnswer(a -> {
+            CitaMedica in = a.getArgument(0);
+            CitaMedica persisted = new CitaMedica();
+            persisted.setCitaId(123);
+            persisted.setFecha(in.getFecha());
+            persisted.setCosto(in.getCosto());
+            persisted.setDoctor(in.getDoctor());
+            persisted.setPaciente(in.getPaciente());
+            return persisted;
+        });
         CitaMedica creada = service.create(nueva);
         assertThat(creada.getCitaId()).isEqualTo(123);
         ArgumentCaptor<CitaMedica> captor = ArgumentCaptor.forClass(CitaMedica.class);
@@ -156,4 +165,3 @@ class CitaMedicaServiceImplTest {
         verify(repository).findByFechaBetween(inicio, fin);
     }
 }
-

@@ -68,7 +68,14 @@ class EspecializacionServiceImplTest {
         Especializacion nueva = new Especializacion();
         nueva.setEspecializacionId(888);
         nueva.setNombre("Neuro");
-        when(repository.save(any(Especializacion.class))).thenAnswer(a -> { Especializacion e = a.getArgument(0); e.setEspecializacionId(10); return e;});
+        when(repository.save(any(Especializacion.class))).thenAnswer(a -> {
+            Especializacion e = a.getArgument(0);
+            Especializacion persisted = new Especializacion();
+            persisted.setEspecializacionId(10);
+            persisted.setNombre(e.getNombre());
+            persisted.setDescripcion(e.getDescripcion());
+            return persisted;
+        });
         Especializacion creada = service.create(nueva);
         assertThat(creada.getEspecializacionId()).isEqualTo(10);
         ArgumentCaptor<Especializacion> captor = ArgumentCaptor.forClass(Especializacion.class);
@@ -113,4 +120,3 @@ class EspecializacionServiceImplTest {
                 .isInstanceOf(NotFoundException.class);
     }
 }
-

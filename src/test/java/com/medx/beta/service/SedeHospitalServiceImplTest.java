@@ -77,7 +77,15 @@ class SedeHospitalServiceImplTest {
         nueva.setSede("Sede Sur");
         nueva.setUbicacion("Calle 2");
         nueva.setHospital(hospital);
-        when(repository.save(any(SedeHospital.class))).thenAnswer(a -> { SedeHospital s = a.getArgument(0); s.setSedeId(5); return s;});
+        when(repository.save(any(SedeHospital.class))).thenAnswer(a -> {
+            SedeHospital in = a.getArgument(0);
+            SedeHospital persisted = new SedeHospital();
+            persisted.setSedeId(5);
+            persisted.setSede(in.getSede());
+            persisted.setUbicacion(in.getUbicacion());
+            persisted.setHospital(in.getHospital());
+            return persisted;
+        });
         SedeHospital creada = service.create(nueva);
         assertThat(creada.getSedeId()).isEqualTo(5);
         ArgumentCaptor<SedeHospital> captor = ArgumentCaptor.forClass(SedeHospital.class);
@@ -131,4 +139,3 @@ class SedeHospitalServiceImplTest {
         verify(repository).findByHospital_HospitalId(3);
     }
 }
-

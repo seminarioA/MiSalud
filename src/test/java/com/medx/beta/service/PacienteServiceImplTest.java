@@ -86,8 +86,17 @@ class PacienteServiceImplTest {
 
         when(pacienteRepository.save(any(Paciente.class))).thenAnswer(inv -> {
             Paciente p = inv.getArgument(0);
-            p.setPacienteId(10);
-            return p;
+            // No mutar el argumento capturado; devolver instancia nueva con ID asignado
+            Paciente persisted = new Paciente();
+            persisted.setPacienteId(10);
+            persisted.setPrimerNombre(p.getPrimerNombre());
+            persisted.setSegundoNombre(p.getSegundoNombre());
+            persisted.setPrimerApellido(p.getPrimerApellido());
+            persisted.setSegundoApellido(p.getSegundoApellido());
+            persisted.setFechaNacimiento(p.getFechaNacimiento());
+            persisted.setDomicilio(p.getDomicilio());
+            persisted.setEstaActivo(p.getEstaActivo());
+            return persisted;
         });
 
         Paciente creado = service.create(nuevo);
@@ -149,4 +158,3 @@ class PacienteServiceImplTest {
         verify(pacienteRepository).findById(50);
     }
 }
-
