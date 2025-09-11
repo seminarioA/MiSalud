@@ -97,7 +97,7 @@ class HospitalServiceImplTest {
     @DisplayName("deleteById ok")
     void delete_ok() {
         when(repository.findById(1)).thenReturn(Optional.of(hospital));
-        service.deleteHospital(1);
+        service.deleteById(1);
         verify(repository).delete(hospital);
     }
 
@@ -105,7 +105,7 @@ class HospitalServiceImplTest {
     @DisplayName("deleteById NotFound")
     void delete_notFound() {
         when(repository.findById(7)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.deleteHospital(7))
+        assertThatThrownBy(() -> service.deleteById(7))
                 .isInstanceOf(NotFoundException.class);
     }
 }

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,13 +29,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = CitaMedicaController.class)
 @Import({GlobalExceptionHandler.class, CitaMedicaControllerTest.ControllerTestConfig.class})
-@WithMockUser(username = "tester", roles = {"USER"})
 class CitaMedicaControllerTest {
 
     @Autowired MockMvc mvc;
@@ -126,9 +122,7 @@ class CitaMedicaControllerTest {
     void create_ok() throws Exception {
         when(citaMedicaService.create(any(CitaMedica.class))).thenReturn(build(20));
         String body = "{\"fecha\":\"2025-01-01T10:00:00\",\"costo\":150.0,\"doctor\":{\"doctorId\":1},\"paciente\":{\"pacienteId\":2}}";
-        mvc.perform(post("/api/citas").with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+        mvc.perform(post("/api/citas").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.citaId", is(20)));
         verify(citaMedicaService).create(any(CitaMedica.class));
@@ -140,9 +134,7 @@ class CitaMedicaControllerTest {
         CitaMedica updated = build(8); updated.setCosto(new BigDecimal("250.00"));
         when(citaMedicaService.update(eq(8), any(CitaMedica.class))).thenReturn(updated);
         String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/citas/8").with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+        mvc.perform(put("/api/citas/8").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.costo", is(250.00)));
         verify(citaMedicaService).update(eq(8), any(CitaMedica.class));
@@ -152,7 +144,7 @@ class CitaMedicaControllerTest {
     @ValueSource(ints = {3,6,9})
     @DisplayName("DELETE /api/citas/{id} 204")
     void delete_ok(int id) throws Exception {
-        mvc.perform(delete("/api/citas/"+id).with(csrf()))
+        mvc.perform(delete("/api/citas/"+id))
                 .andExpect(status().isNoContent());
         verify(citaMedicaService).deleteById(id);
     }

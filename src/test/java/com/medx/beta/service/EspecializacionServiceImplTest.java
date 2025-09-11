@@ -68,14 +68,7 @@ class EspecializacionServiceImplTest {
         Especializacion nueva = new Especializacion();
         nueva.setEspecializacionId(888);
         nueva.setNombre("Neuro");
-        when(repository.save(any(Especializacion.class))).thenAnswer(a -> {
-            Especializacion e = a.getArgument(0);
-            Especializacion persisted = new Especializacion();
-            persisted.setEspecializacionId(10);
-            persisted.setNombre(e.getNombre());
-            persisted.setDescripcion(e.getDescripcion());
-            return persisted;
-        });
+        when(repository.save(any(Especializacion.class))).thenAnswer(a -> { Especializacion e = a.getArgument(0); e.setEspecializacionId(10); return e;});
         Especializacion creada = service.create(nueva);
         assertThat(creada.getEspecializacionId()).isEqualTo(10);
         ArgumentCaptor<Especializacion> captor = ArgumentCaptor.forClass(Especializacion.class);
@@ -108,7 +101,7 @@ class EspecializacionServiceImplTest {
     @DisplayName("deleteById ok")
     void delete_ok() {
         when(repository.findById(1)).thenReturn(Optional.of(especializacion));
-        service.deleteEspecializacion(1);
+        service.deleteById(1);
         verify(repository).delete(especializacion);
     }
 
@@ -116,7 +109,8 @@ class EspecializacionServiceImplTest {
     @DisplayName("deleteById NotFound")
     void delete_notFound() {
         when(repository.findById(5)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.deleteEspecializacion(5))
+        assertThatThrownBy(() -> service.deleteById(5))
                 .isInstanceOf(NotFoundException.class);
     }
 }
+

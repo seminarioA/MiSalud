@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
@@ -28,13 +27,11 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = DoctorController.class)
 @Import({GlobalExceptionHandler.class, DoctorControllerTest.ControllerTestConfig.class})
-@WithMockUser(username = "tester", roles = {"USER"})
 class DoctorControllerTest {
 
     @Autowired
@@ -105,7 +102,7 @@ class DoctorControllerTest {
         String body = "{" +
                 "\"primerNombre\":\"Mario\",\"primerApellido\":\"Rossi\",\"segundoApellido\":\"Bianchi\"," +
                 "\"sedeHospital\":{\"sedeId\":11}}";
-        mvc.perform(post("/api/doctores").with(csrf())
+        mvc.perform(post("/api/doctores")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
@@ -120,7 +117,7 @@ class DoctorControllerTest {
         updated.setPrimerNombre("Nuevo");
         when(doctorService.update(eq(3), any(Doctor.class))).thenReturn(updated);
         String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/doctores/3").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(put("/api/doctores/3").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primerNombre", is("Nuevo")));
         verify(doctorService).update(eq(3), any(Doctor.class));
@@ -130,7 +127,7 @@ class DoctorControllerTest {
     @ValueSource(ints = {1,2,5})
     @DisplayName("DELETE /api/doctores/{id} 204")
     void delete_ok(int id) throws Exception {
-        mvc.perform(delete("/api/doctores/"+id).with(csrf()))
+        mvc.perform(delete("/api/doctores/"+id))
                 .andExpect(status().isNoContent());
         verify(doctorService).deleteById(id);
     }

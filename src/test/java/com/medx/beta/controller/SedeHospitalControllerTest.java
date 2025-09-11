@@ -19,22 +19,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = SedeHospitalController.class)
 @Import({GlobalExceptionHandler.class, SedeHospitalControllerTest.ControllerTestConfig.class})
-@WithMockUser(username = "tester", roles = {"USER"})
 class SedeHospitalControllerTest {
 
     @Autowired MockMvc mvc;
@@ -100,7 +96,7 @@ class SedeHospitalControllerTest {
     void create_ok() throws Exception {
         when(sedeHospitalService.create(any(SedeHospital.class))).thenReturn(build(20, 4));
         String body = "{\"sede\":\"Nueva Sede\",\"ubicacion\":\"Zona A\",\"hospital\":{\"hospitalId\":4}}";
-        mvc.perform(post("/api/sedes").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/sedes").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.sedeId", is(20)))
                 .andExpect(jsonPath("$.hospital.hospitalId", is(4)));
@@ -113,7 +109,7 @@ class SedeHospitalControllerTest {
         SedeHospital updated = build(8, 3); updated.setSede("Sede Mod");
         when(sedeHospitalService.update(eq(8), any(SedeHospital.class))).thenReturn(updated);
         String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/sedes/8").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(put("/api/sedes/8").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sede", is("Sede Mod")));
         verify(sedeHospitalService).update(eq(8), any(SedeHospital.class));
@@ -123,7 +119,7 @@ class SedeHospitalControllerTest {
     @ValueSource(ints = {1,4,9})
     @DisplayName("DELETE /api/sedes/{id} 204")
     void delete_ok(int id) throws Exception {
-        mvc.perform(delete("/api/sedes/"+id).with(csrf()))
+        mvc.perform(delete("/api/sedes/"+id))
                 .andExpect(status().isNoContent());
         verify(sedeHospitalService).deleteById(id);
     }
@@ -135,3 +131,4 @@ class SedeHospitalControllerTest {
         SedeHospitalService sedeHospitalService() { return Mockito.mock(SedeHospitalService.class); }
     }
 }
+

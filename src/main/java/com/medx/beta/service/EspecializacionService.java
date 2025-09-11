@@ -12,9 +12,5 @@ public interface EspecializacionService {
     //Actualizar una especializacion existente
     Especializacion update(Integer id, Especializacion especializacion);
     //Eliminar una especializacion por ID
-    void deleteEspecializacion(Integer id);
-    //Verificar si existe una especialización con el nombre dado
-    boolean existsByNombre(String nombre);
-    //Verificar si existe otra especialización con el mismo nombre (excluyendo la especialización con el ID dado)
-    boolean existsByNombreAndNotId(String nombre, Integer especializacionId);
+    void deleteById(Integer id);
 }

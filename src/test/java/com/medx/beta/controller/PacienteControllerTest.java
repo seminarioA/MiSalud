@@ -9,47 +9,30 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = PacienteController.class)
 @Import({GlobalExceptionHandler.class, PacienteControllerTest.ControllerTestConfig.class})
-@WithMockUser(username = "tester", roles = {"USER"})
 class PacienteControllerTest {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired
-    PacienteService pacienteService; // inyectado desde ControllerTestConfig
-
-    @TestConfiguration
-    static class ControllerTestConfig {
-        @Bean
-        @Primary
-        PacienteService pacienteService() {
-            return Mockito.mock(PacienteService.class);
-        }
-    }
+    PacienteService pacienteService; // reemplaza @MockBean
 
     private Paciente buildPaciente(Integer id) {
         Paciente p = new Paciente();
@@ -98,7 +81,7 @@ class PacienteControllerTest {
         Paciente creado = buildPaciente(10);
         when(pacienteService.create(any(Paciente.class))).thenReturn(creado);
         String body = "{\"primerNombre\":\"Ana\",\"primerApellido\":\"Lopez\",\"segundoApellido\":\"Diaz\",\"estaActivo\":true}";
-        mvc.perform(post("/api/pacientes").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/api/pacientes").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.pacienteId", is(10)));
         verify(pacienteService).create(any(Paciente.class));
@@ -111,7 +94,7 @@ class PacienteControllerTest {
         updated.setPrimerNombre("AnaMaria");
         when(pacienteService.update(eq(4), any(Paciente.class))).thenReturn(updated);
         String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/pacientes/4").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(put("/api/pacientes/4").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primerNombre", is("AnaMaria")));
         verify(pacienteService).update(eq(4), any(Paciente.class));
@@ -121,7 +104,7 @@ class PacienteControllerTest {
     @ValueSource(ints = {2,5,7})
     @DisplayName("DELETE /api/pacientes/{id} 204")
     void delete_ok(int id) throws Exception {
-        mvc.perform(delete("/api/pacientes/"+id).with(csrf()))
+        mvc.perform(delete("/api/pacientes/"+id))
                 .andExpect(status().isNoContent());
         verify(pacienteService).deleteById(id);
     }
