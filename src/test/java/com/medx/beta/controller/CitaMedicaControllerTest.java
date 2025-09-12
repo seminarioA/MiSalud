@@ -32,6 +32,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = CitaMedicaController.class)
 @Import({GlobalExceptionHandler.class, CitaMedicaControllerTest.ControllerTestConfig.class})
 class CitaMedicaControllerTest {
@@ -153,6 +154,6 @@ class CitaMedicaControllerTest {
     static class ControllerTestConfig {
         @Bean
         @Primary
-        CitaMedicaService citaMedicaService() { return Mockito.mock(CitaMedicaService.class); }
+        CitaMedicaService citaMedicaService() { return mock(CitaMedicaService.class); }
     }
 }

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = EspecializacionController.class)
 @Import({GlobalExceptionHandler.class, EspecializacionControllerTest.ControllerTestConfig.class})
 class EspecializacionControllerTest {
@@ -107,6 +108,6 @@ class EspecializacionControllerTest {
     static class ControllerTestConfig {
         @org.springframework.context.annotation.Bean
         @org.springframework.context.annotation.Primary
-        EspecializacionService especializacionService() { return Mockito.mock(EspecializacionService.class); }
+        EspecializacionService especializacionService() { return mock(EspecializacionService.class); }
     }
 }

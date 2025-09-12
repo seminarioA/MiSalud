@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = PacienteController.class)
 @Import({GlobalExceptionHandler.class, PacienteControllerTest.ControllerTestConfig.class})
 class PacienteControllerTest {
@@ -80,7 +81,7 @@ class PacienteControllerTest {
     void create_ok() throws Exception {
         Paciente creado = buildPaciente(10);
         when(pacienteService.create(any(Paciente.class))).thenReturn(creado);
-        String body = "{\"primerNombre\":\"Ana\",\"primerApellido\":\"Lopez\",\"segundoApellido\":\"Diaz\",\"estaActivo\":true}";
+        String body = "{\"primerNombre\":\"Ana\",\"primerApellido\":\"Lopez\",\"segundoApellido\":\"Diaz\",\"fechaNacimiento\":\"1990-01-01\",\"estaActivo\":true}";
         mvc.perform(post("/api/pacientes").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.pacienteId", is(10)));
@@ -107,5 +108,12 @@ class PacienteControllerTest {
         mvc.perform(delete("/api/pacientes/"+id))
                 .andExpect(status().isNoContent());
         verify(pacienteService).deleteById(id);
+    }
+
+    @org.springframework.boot.test.context.TestConfiguration
+    static class ControllerTestConfig {
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        PacienteService pacienteService() { return mock(PacienteService.class); }
     }
 }

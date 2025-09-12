@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = HospitalController.class)
 @Import({GlobalExceptionHandler.class, HospitalControllerTest.ControllerTestConfig.class})
 class HospitalControllerTest {
@@ -108,6 +109,6 @@ class HospitalControllerTest {
     static class ControllerTestConfig {
         @org.springframework.context.annotation.Bean
         @org.springframework.context.annotation.Primary
-        HospitalService hospitalService() { return Mockito.mock(HospitalService.class); }
+        HospitalService hospitalService() { return mock(HospitalService.class); }
     }
 }
