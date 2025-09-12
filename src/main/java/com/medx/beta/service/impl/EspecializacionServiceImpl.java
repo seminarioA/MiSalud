@@ -41,18 +41,16 @@ public class EspecializacionServiceImpl implements EspecializacionService {
     }
 
     @Override
-    public void deleteEspecializacion(Integer id) {
+    public void deleteById(Integer id) {
         Especializacion existente = especializacionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
         especializacionRepository.delete(existente);
     }
     
-    @Override
     public boolean existsByNombre(String nombre) {
         return especializacionRepository.existsByNombreIgnoreCase(nombre);
     }
     
-    @Override
     public boolean existsByNombreAndNotId(String nombre, Integer especializacionId) {
         return especializacionRepository.existsByNombreIgnoreCaseAndEspecializacionIdNot(nombre, especializacionId);
     }
