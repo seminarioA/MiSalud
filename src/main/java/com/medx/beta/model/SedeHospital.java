@@ -8,7 +8,9 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name = "Sede_Hospital")
+@Table(name = "Sede_Hospital", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"hospital_id", "sede"}, name = "uk_sede_nombre_hospital")
+})
 
 @Getter
 @Setter
@@ -28,11 +30,13 @@ public class SedeHospital {
     private String ubicacion;
 
     @NotNull(message = "El hospital es obligatorio")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "Hospital_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "fk_Sede_Hospital_Hospital1"))
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "hospital_id", nullable = false, foreignKey = @ForeignKey(name = "fk_sede_hospital_hospital"))
     private Hospital hospital;
 
     @OneToMany(mappedBy = "sedeHospital", fetch = FetchType.LAZY)
     private List<Doctor> doctores;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private java.time.LocalDateTime fechaCreacion;
 }

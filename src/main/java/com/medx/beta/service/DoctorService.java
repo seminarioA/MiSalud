@@ -1,17 +1,18 @@
 package com.medx.beta.service;
 
-import com.medx.beta.model.Doctor;
+import com.medx.beta.dto.DoctorRequest;
+import com.medx.beta.dto.DoctorResponse;
 import java.util.List;
 
 public interface DoctorService {
     // Obtiene todos los doctores
-    List<Doctor> getAll();
+    List<DoctorResponse> getAll();
     // Busca un doctor por ID (lanza excepción si no existe)
-    Doctor getById(Integer id);
+    DoctorResponse getById(Integer id);
     // Crea un nuevo doctor
-    Doctor create(Doctor doctor);
+    DoctorResponse create(DoctorRequest doctorRequest);
     // Actualiza un doctor existente
-    Doctor update(Integer id, Doctor doctor);
+    DoctorResponse update(Integer id, DoctorRequest doctorRequest);
     // Elimina un doctor por ID
     void deleteById(Integer id);
 }

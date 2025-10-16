@@ -7,8 +7,11 @@ import com.medx.beta.service.HospitalService;
 import com.medx.beta.model.Hospital;
 import com.medx.beta.repository.HospitalRepository;
 import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.dto.HospitalRequest;
+import com.medx.beta.dto.HospitalResponse;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class HospitalServiceImpl implements HospitalService {
@@ -17,36 +20,48 @@ public class HospitalServiceImpl implements HospitalService {
     private HospitalRepository hospitalRepository;
 
     @Override
-    public List<Hospital> getAll() {
-        return hospitalRepository.findAll();
+    public List<HospitalResponse> getAll() {
+        return hospitalRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
-    public Hospital getById(Integer id) {
-        return hospitalRepository.findById(id)
+    public HospitalResponse getById(Integer id) {
+        Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
+        return toResponse(hospital);
     }
 
     @Override
-    public Hospital create(Hospital hospital) {
-        return hospitalRepository.save(hospital);
+    public HospitalResponse create(HospitalRequest hospitalRequest) {
+        Hospital hospital = new Hospital();
+        hospital.setNombre(hospitalRequest.getNombre());
+        hospital.setDescripcion(hospitalRequest.getDescripcion());
+        Hospital saved = hospitalRepository.save(hospital);
+        return toResponse(saved);
     }
 
     @Override
-    public Hospital update(Integer id, Hospital hospital) { 
+    public HospitalResponse update(Integer id, HospitalRequest hospitalRequest) {
         Hospital existente = hospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
-        existente.setNombre(hospital.getNombre());
-        existente.setDescripcion(hospital.getDescripcion());
-        // No actualizamos sedes directamente aqui para evitar desincronizacion
-        return hospitalRepository.save(existente);
+        existente.setNombre(hospitalRequest.getNombre());
+        existente.setDescripcion(hospitalRequest.getDescripcion());
+        Hospital saved = hospitalRepository.save(existente);
+        return toResponse(saved);
     }
 
     @Override
     public void deleteById(Integer id) {
-        Hospital existente = hospitalRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
-        hospitalRepository.delete(existente);
+        hospitalRepository.deleteById(id);
+    }
+
+    private HospitalResponse toResponse(Hospital hospital) {
+        HospitalResponse dto = new HospitalResponse();
+        dto.setHospitalId(hospital.getHospitalId());
+        dto.setNombre(hospital.getNombre());
+        dto.setDescripcion(hospital.getDescripcion());
+        dto.setFechaCreacion(hospital.getFechaCreacion() != null ? hospital.getFechaCreacion().toString() : null);
+        return dto;
     }
 
 }

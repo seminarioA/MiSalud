@@ -30,6 +30,9 @@ public class Hospital {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private java.time.LocalDateTime fechaCreacion;
+
     @OneToMany(mappedBy = "hospital", fetch = FetchType.LAZY)
     private List<SedeHospital> sedes;
 }

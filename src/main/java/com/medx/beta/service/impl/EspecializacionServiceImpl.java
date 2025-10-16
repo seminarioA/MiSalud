@@ -4,7 +4,10 @@ import com.medx.beta.service.EspecializacionService;
 import com.medx.beta.model.Especializacion;
 import com.medx.beta.repository.EspecializacionRepository;
 import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.dto.EspecializacionRequest;
+import com.medx.beta.dto.EspecializacionResponse;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,30 +17,34 @@ public class EspecializacionServiceImpl implements EspecializacionService {
     private EspecializacionRepository especializacionRepository;
 
     @Override
-    public List<Especializacion> getAll() {
-        return especializacionRepository.findAll();
+    public List<EspecializacionResponse> getAll() {
+        return especializacionRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
-    public Especializacion getById(Integer id) {
-        return especializacionRepository.findById(id)
+    public EspecializacionResponse getById(Integer id) {
+        Especializacion especializacion = especializacionRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
+        return toResponse(especializacion);
     }
 
     @Override
-    public Especializacion create(Especializacion especializacion) {
-        especializacion.setEspecializacionId(null); // asegurar creación si existe ID
-        return especializacionRepository.save(especializacion);
+    public EspecializacionResponse create(EspecializacionRequest request) {
+        Especializacion especializacion = new Especializacion();
+        especializacion.setNombre(request.getNombre());
+        especializacion.setDescripcion(request.getDescripcion());
+        Especializacion saved = especializacionRepository.save(especializacion);
+        return toResponse(saved);
     }
 
     @Override
-    public Especializacion update(Integer id, Especializacion especializacion) {
+    public EspecializacionResponse update(Integer id, EspecializacionRequest request) {
         Especializacion existente = especializacionRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Especialización no encontrada con ID: " + id));
-        
-        existente.setNombre(especializacion.getNombre());
-        existente.setDescripcion(especializacion.getDescripcion());
-        return especializacionRepository.save(existente);
+        existente.setNombre(request.getNombre());
+        existente.setDescripcion(request.getDescripcion());
+        Especializacion saved = especializacionRepository.save(existente);
+        return toResponse(saved);
     }
 
     @Override
@@ -53,5 +60,13 @@ public class EspecializacionServiceImpl implements EspecializacionService {
     
     public boolean existsByNombreAndNotId(String nombre, Integer especializacionId) {
         return especializacionRepository.existsByNombreIgnoreCaseAndEspecializacionIdNot(nombre, especializacionId);
+    }
+
+    private EspecializacionResponse toResponse(Especializacion especializacion) {
+        EspecializacionResponse dto = new EspecializacionResponse();
+        dto.setEspecializacionId(especializacion.getEspecializacionId());
+        dto.setNombre(especializacion.getNombre());
+        dto.setDescripcion(especializacion.getDescripcion());
+        return dto;
     }
 }

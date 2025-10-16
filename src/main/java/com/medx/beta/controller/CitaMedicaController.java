@@ -1,6 +1,7 @@
 package com.medx.beta.controller;
 
-import com.medx.beta.model.CitaMedica;
+import com.medx.beta.dto.CitaMedicaRequest;
+import com.medx.beta.dto.CitaMedicaResponse;
 import com.medx.beta.service.CitaMedicaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/citas")
+@RequestMapping("/api/v1/citas")
 @RequiredArgsConstructor
 @Validated
 public class CitaMedicaController {
@@ -24,44 +25,45 @@ public class CitaMedicaController {
     private final CitaMedicaService citaMedicaService;
 
     @GetMapping
-    public ResponseEntity<List<CitaMedica>> getAll() {
+    public ResponseEntity<List<CitaMedicaResponse>> getAll() {
         return ResponseEntity.ok(citaMedicaService.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CitaMedica> getById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
+    public ResponseEntity<CitaMedicaResponse> getById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         return ResponseEntity.ok(citaMedicaService.getById(id));
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<List<CitaMedica>> getByDoctor(@PathVariable @Positive(message = "El id debe ser positivo") Integer doctorId) {
+    public ResponseEntity<List<CitaMedicaResponse>> getByDoctor(@PathVariable @Positive(message = "El id debe ser positivo") Integer doctorId) {
         return ResponseEntity.ok(citaMedicaService.getByDoctor(doctorId));
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    public ResponseEntity<List<CitaMedica>> getByPaciente(@PathVariable @Positive(message = "El id debe ser positivo") Integer pacienteId) {
+    public ResponseEntity<List<CitaMedicaResponse>> getByPaciente(@PathVariable @Positive(message = "El id debe ser positivo") Integer pacienteId) {
         return ResponseEntity.ok(citaMedicaService.getByPaciente(pacienteId));
     }
 
     @GetMapping("/rango")
-    public ResponseEntity<List<CitaMedica>> getByRangoFechas(
+    public ResponseEntity<List<CitaMedicaResponse>> getByRangoFechas(
             @RequestParam @NotNull(message = "inicio es obligatorio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
             @RequestParam @NotNull(message = "fin es obligatorio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fin) {
         if (inicio.isAfter(fin)) {
-            throw new IllegalArgumentException("El parámetro 'inicio' no puede ser posterior a 'fin'");
+            throw new IllegalArgumentException("La fecha de inicio debe ser anterior a la fecha de fin");
         }
         return ResponseEntity.ok(citaMedicaService.getByFechaBetween(inicio, fin));
     }
 
     @PostMapping
-    public ResponseEntity<CitaMedica> create(@RequestBody @Valid CitaMedica citaMedica) {
-        CitaMedica creada = citaMedicaService.create(citaMedica);
+    public ResponseEntity<CitaMedicaResponse> create(@RequestBody @Valid CitaMedicaRequest citaMedicaRequest) {
+        CitaMedicaResponse creada = citaMedicaService.create(citaMedicaRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CitaMedica> update(@PathVariable @Positive(message = "El id debe ser positivo") Integer id, @RequestBody @Valid CitaMedica citaMedica) {
-        return ResponseEntity.ok(citaMedicaService.update(id, citaMedica));
+    public ResponseEntity<CitaMedicaResponse> update(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
+                                           @RequestBody @Valid CitaMedicaRequest citaMedicaRequest) {
+        return ResponseEntity.ok(citaMedicaService.update(id, citaMedicaRequest));
     }
 
     @DeleteMapping("/{id}")

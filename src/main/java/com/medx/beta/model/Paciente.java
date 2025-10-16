@@ -52,18 +52,26 @@ public class Paciente {
     @Column(length = 500)
     private String domicilio;
 
-    @NotNull(message = "El estado de actividad es obligatorio")
-    @Column(nullable = false)
+    @Column(name = "esta_activo", nullable = false)
     private Boolean estaActivo = true;
 
-    @PastOrPresent(message = "La fecha de creación no puede ser futura")
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
+    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private java.time.LocalDateTime fechaCreacion;
 
     @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
     private List<CitaMedica> citas;
 
     @PrePersist
+    private void prePersist() {
+        if (estaActivo == null) estaActivo = true;
+        if (fechaNacimiento != null && fechaNacimiento.isAfter(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
+        }
+        if (fechaNacimiento != null && fechaNacimiento.isBefore(java.time.LocalDate.now().minusYears(120))) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser mayor a 120 años");
+        }
+    }
+
     @PreUpdate
     private void normalize() {
         primerNombre = trim(primerNombre);

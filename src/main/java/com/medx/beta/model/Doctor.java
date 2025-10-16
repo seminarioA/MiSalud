@@ -38,23 +38,30 @@ public class Doctor {
     @NotBlank(message = "El segundo apellido es obligatorio")
     @Size(max = 75, message = "El segundo apellido no debe exceder 75 caracteres")
     @Pattern(regexp = "^[\\p{L} .'-]+$", message = "El segundo apellido solo puede contener letras y espacios")
-    @Column(nullable = false, length = 75)
+    @Column(nullable = true, length = 75)
     private String segundoApellido;
 
     @NotNull(message = "La sede del hospital es obligatoria")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "Sede_Hospital_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "fk_Doctor_Sede_Hospital1"))
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "sede_id", nullable = false, foreignKey = @ForeignKey(name = "fk_doctor_sede"))
     private SedeHospital sedeHospital;
 
-    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY)
-    private List<CitaMedica> citas;
+    @NotNull(message = "El turno es obligatorio")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "turno_id", nullable = false, foreignKey = @ForeignKey(name = "fk_doctor_turno"))
+    private HorarioBase turno;
+
+    @Column(name = "esta_activo", nullable = false)
+    private Boolean estaActivo = true;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private java.time.LocalDateTime fechaCreacion;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "Doctor_Especializacion",
-            joinColumns = @JoinColumn(name = "Doctor_id"),
-            inverseJoinColumns = @JoinColumn(name = "Especializacion_id")
+        name = "Doctor_Especializacion",
+        joinColumns = @JoinColumn(name = "doctor_id"),
+        inverseJoinColumns = @JoinColumn(name = "especializacion_id")
     )
     private List<Especializacion> especializaciones;
 
