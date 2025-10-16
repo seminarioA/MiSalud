@@ -50,6 +50,19 @@ if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
 }
 
+if ($env:MVNW_FORCE_WRAPPER -ne "true") {
+  try {
+    $installedMaven = (Get-Command mvn -ErrorAction Stop).Source
+  } catch {
+    $installedMaven = $null
+  }
+
+  if ($installedMaven) {
+    Write-Output "MVN_CMD=$installedMaven"
+    exit $LASTEXITCODE
+  }
+}
+
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties
 $distributionUrl = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionUrl
 if (!$distributionUrl) {

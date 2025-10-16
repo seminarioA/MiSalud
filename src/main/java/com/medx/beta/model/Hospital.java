@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -16,7 +15,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Hospital {
+public class Hospital extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,20 +30,16 @@ public class Hospital {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime fechaCreacion;
-
     @OneToMany(mappedBy = "hospital", fetch = FetchType.LAZY)
     private List<SedeHospital> sedes;
 
-    @PrePersist
-    private void prePersist() {
-        fechaCreacion = LocalDateTime.now();
+    @Override
+    protected void onCreate() {
         normalize();
     }
 
-    @PreUpdate
-    private void preUpdate() {
+    @Override
+    protected void onUpdate() {
         normalize();
     }
 

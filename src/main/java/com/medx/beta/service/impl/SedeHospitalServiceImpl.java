@@ -83,6 +83,8 @@ public class SedeHospitalServiceImpl implements SedeHospitalService {
         dto.setUbicacion(sede.getUbicacion());
         dto.setHospitalId(sede.getHospital() != null ? sede.getHospital().getHospitalId() : null);
         dto.setFechaCreacion(sede.getFechaCreacion());
+        dto.setFechaActualizacion(sede.getFechaActualizacion());
         return dto;
     }
 }
+

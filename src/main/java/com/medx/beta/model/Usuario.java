@@ -8,15 +8,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 @Entity
 @Table(name = "Usuario")
 @Getter
 @Setter
-public class Usuario implements UserDetails {
+public class Usuario extends AuditableEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,19 +58,32 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
-
-    @Column(nullable = false)
-    private LocalDateTime fechaActualizacion = LocalDateTime.now();
-
     public enum Role {
         PACIENTE, DOCTOR, ADMIN
     }
 
-    @PreUpdate
+    @Override
+    protected void onCreate() {
+        normalize();
+        if (activo == null) {
+            activo = true;
+        }
+    }
+
+    @Override
     protected void onUpdate() {
-        fechaActualizacion = LocalDateTime.now();
+        normalize();
+    }
+
+    private void normalize() {
+        username = trim(username);
+        email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+        nombre = trim(nombre);
+        apellido = trim(apellido);
+    }
+
+    private String trim(String value) {
+        return value == null ? null : value.trim();
     }
 
     // Métodos de UserDetails
