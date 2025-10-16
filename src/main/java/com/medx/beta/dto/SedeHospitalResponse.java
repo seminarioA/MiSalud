@@ -11,5 +11,6 @@ public class SedeHospitalResponse {
     private String ubicacion;
     private Integer hospitalId;
     private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
 }
 

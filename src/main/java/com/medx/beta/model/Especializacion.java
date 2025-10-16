@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -15,7 +16,9 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Especializacion {
+public class Especializacion implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

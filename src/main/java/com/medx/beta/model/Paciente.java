@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -14,7 +13,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Paciente {
+public class Paciente extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,32 +54,22 @@ public class Paciente {
     @Column(name = "esta_activo", nullable = false)
     private Boolean estaActivo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime fechaCreacion;
-
-    @Column(name = "fecha_actualizacion", nullable = false)
-    private LocalDateTime fechaActualizacion;
-
     @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
     private List<CitaMedica> citas;
 
-    @PrePersist
-    private void prePersist() {
+    @Override
+    protected void onCreate() {
         normalize();
         validarFechaNacimiento();
         if (estaActivo == null) {
             estaActivo = true;
         }
-        LocalDateTime now = LocalDateTime.now();
-        fechaCreacion = now;
-        fechaActualizacion = now;
     }
 
-    @PreUpdate
-    private void preUpdate() {
+    @Override
+    protected void onUpdate() {
         normalize();
         validarFechaNacimiento();
-        fechaActualizacion = LocalDateTime.now();
     }
 
     private void normalize() {
