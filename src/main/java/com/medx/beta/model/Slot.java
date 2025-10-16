@@ -5,13 +5,17 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "Slot", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"sede_id", "fecha", "hora_inicio", "hora_fin"}, name = "uk_slot_sede_fecha_hora")
 })
 @Getter
 @Setter
-public class Slot {
+public class Slot implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long slotId;

@@ -5,7 +5,6 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -13,7 +12,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Doctor {
+public class Doctor extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,12 +54,6 @@ public class Doctor {
     @Column(name = "esta_activo", nullable = false)
     private Boolean estaActivo = true;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime fechaCreacion;
-
-    @Column(name = "fecha_actualizacion", nullable = false)
-    private LocalDateTime fechaActualizacion;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "Doctor_Especializacion",
@@ -69,21 +62,17 @@ public class Doctor {
     )
     private List<Especializacion> especializaciones;
 
-    @PrePersist
-    private void prePersist() {
+    @Override
+    protected void onCreate() {
         normalize();
         if (estaActivo == null) {
             estaActivo = true;
         }
-        LocalDateTime now = LocalDateTime.now();
-        fechaCreacion = now;
-        fechaActualizacion = now;
     }
 
-    @PreUpdate
-    private void preUpdate() {
+    @Override
+    protected void onUpdate() {
         normalize();
-        fechaActualizacion = LocalDateTime.now();
     }
 
     private void normalize() {

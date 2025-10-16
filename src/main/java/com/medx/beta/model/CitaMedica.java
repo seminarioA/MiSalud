@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class CitaMedica {
+public class CitaMedica extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,20 +58,4 @@ public class CitaMedica {
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoCita estado = EstadoCita.Reservada;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private java.time.LocalDateTime fechaCreacion;
-
-    @Column(name = "fecha_actualizacion", nullable = false)
-    private java.time.LocalDateTime fechaActualizacion;
-
-    @PrePersist
-    protected void onCreate() {
-        this.fechaCreacion = java.time.LocalDateTime.now();
-        this.fechaActualizacion = java.time.LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.fechaActualizacion = java.time.LocalDateTime.now();
-    }
 }

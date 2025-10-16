@@ -68,6 +68,7 @@ public class HospitalServiceImpl implements HospitalService {
         dto.setNombre(hospital.getNombre());
         dto.setDescripcion(hospital.getDescripcion());
         dto.setFechaCreacion(hospital.getFechaCreacion());
+        dto.setFechaActualizacion(hospital.getFechaActualizacion());
         return dto;
     }
 }
