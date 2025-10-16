@@ -9,7 +9,9 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name = "Especializacion")
+@Table(name = "Especializacion", uniqueConstraints = {
+    @UniqueConstraint(columnNames = "nombre", name = "uk_especializacion_nombre")
+})
 
 @Getter
 @Setter

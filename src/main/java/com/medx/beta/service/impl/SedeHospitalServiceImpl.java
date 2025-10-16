@@ -1,54 +1,83 @@
 package com.medx.beta.service.impl;
 
+import com.medx.beta.dto.SedeHospitalRequest;
+import com.medx.beta.dto.SedeHospitalResponse;
 import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.model.Hospital;
 import com.medx.beta.model.SedeHospital;
+import com.medx.beta.repository.HospitalRepository;
 import com.medx.beta.repository.SedeHospitalRepository;
 import com.medx.beta.service.SedeHospitalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SedeHospitalServiceImpl implements SedeHospitalService {
 
     private final SedeHospitalRepository sedeHospitalRepository;
+    private final HospitalRepository hospitalRepository;
 
     @Override
-    public List<SedeHospital> getAll() {
-        return sedeHospitalRepository.findAll();
+    public List<SedeHospitalResponse> getAll() {
+        return sedeHospitalRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
-    public SedeHospital getById(Integer id) {
-        return sedeHospitalRepository.findById(id)
+    public SedeHospitalResponse getById(Integer id) {
+        SedeHospital sede = sedeHospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Sede hospital no encontrada con id: " + id));
+        return toResponse(sede);
     }
 
     @Override
-    public SedeHospital create(SedeHospital sedeHospital) {
-        sedeHospital.setSedeId(null); // asegurar creación
-        return sedeHospitalRepository.save(sedeHospital);
+    public SedeHospitalResponse create(SedeHospitalRequest request) {
+        Hospital hospital = hospitalRepository.findById(request.getHospitalId())
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + request.getHospitalId()));
+        SedeHospital sede = new SedeHospital();
+        sede.setSede(request.getSede());
+        sede.setUbicacion(request.getUbicacion());
+        sede.setHospital(hospital);
+        SedeHospital saved = sedeHospitalRepository.save(sede);
+        return toResponse(saved);
     }
 
     @Override
-    public SedeHospital update(Integer id, SedeHospital sedeHospital) {
-        SedeHospital existente = getById(id);
-        existente.setSede(sedeHospital.getSede());
-        existente.setUbicacion(sedeHospital.getUbicacion());
-        existente.setHospital(sedeHospital.getHospital());
-        return sedeHospitalRepository.save(existente);
+    public SedeHospitalResponse update(Integer id, SedeHospitalRequest request) {
+        SedeHospital existente = sedeHospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Sede hospital no encontrada con id: " + id));
+        Hospital hospital = hospitalRepository.findById(request.getHospitalId())
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + request.getHospitalId()));
+        existente.setSede(request.getSede());
+        existente.setUbicacion(request.getUbicacion());
+        existente.setHospital(hospital);
+        SedeHospital saved = sedeHospitalRepository.save(existente);
+        return toResponse(saved);
     }
 
     @Override
-    public void deleteById(Integer id) {
-        SedeHospital existente = getById(id);
+    public void delete(Integer id) {
+        SedeHospital existente = sedeHospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Sede hospital no encontrada con id: " + id));
         sedeHospitalRepository.delete(existente);
     }
 
     @Override
-    public List<SedeHospital> getByHospital(Integer hospitalId) {
-        return sedeHospitalRepository.findByHospital_HospitalId(hospitalId);
+    public List<SedeHospitalResponse> getByHospital(Integer hospitalId) {
+        return sedeHospitalRepository.findByHospital_HospitalId(hospitalId)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    private SedeHospitalResponse toResponse(SedeHospital sede) {
+        SedeHospitalResponse dto = new SedeHospitalResponse();
+        dto.setSedeId(sede.getSedeId());
+        dto.setSede(sede.getSede());
+        dto.setUbicacion(sede.getUbicacion());
+        dto.setHospitalId(sede.getHospital() != null ? sede.getHospital().getHospitalId() : null);
+        dto.setFechaCreacion(sede.getFechaCreacion() != null ? sede.getFechaCreacion().toString() : null);
+        return dto;
     }
 }

@@ -1,19 +1,20 @@
 package com.medx.beta.service;
 
-import com.medx.beta.model.CitaMedica;
+import com.medx.beta.dto.CitaMedicaRequest;
+import com.medx.beta.dto.CitaMedicaResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CitaMedicaService {
-    List<CitaMedica> getAll();
-    CitaMedica getById(Integer id);
-    CitaMedica create(CitaMedica citaMedica);
-    CitaMedica update(Integer id, CitaMedica citaMedica);
+    List<CitaMedicaResponse> getAll();
+    CitaMedicaResponse getById(Integer id);
+    CitaMedicaResponse create(CitaMedicaRequest citaMedicaRequest);
+    CitaMedicaResponse update(Integer id, CitaMedicaRequest citaMedicaRequest);
     void deleteById(Integer id);
 
     // Consultas adicionales
-    List<CitaMedica> getByDoctor(Integer doctorId);
-    List<CitaMedica> getByPaciente(Integer pacienteId);
-    List<CitaMedica> getByFechaBetween(LocalDateTime inicio, LocalDateTime fin);
+    List<CitaMedicaResponse> getByDoctor(Integer doctorId);
+    List<CitaMedicaResponse> getByPaciente(Integer pacienteId);
+    List<CitaMedicaResponse> getByFechaBetween(LocalDateTime inicio, LocalDateTime fin);
 }

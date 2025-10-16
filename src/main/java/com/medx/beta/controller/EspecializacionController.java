@@ -1,11 +1,11 @@
 package com.medx.beta.controller;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.medx.beta.service.EspecializacionService;
-import com.medx.beta.model.Especializacion;
+import com.medx.beta.dto.EspecializacionRequest;
+import com.medx.beta.dto.EspecializacionResponse;
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -14,35 +14,36 @@ import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@RequestMapping("/api/especializaciones")
+@RequestMapping("/api/v1/especializaciones")
 @Validated
+@RequiredArgsConstructor
 public class EspecializacionController {
     
-    @Autowired
-    private EspecializacionService especializacionService;
+    private final EspecializacionService especializacionService;
 
     @GetMapping
-    public List<Especializacion> getAllEspecializaciones() { // se mantiene el nombre del método público para no romper clientes
-        return especializacionService.getAll();
+    public ResponseEntity<List<EspecializacionResponse>> getAllEspecializaciones() {
+        return ResponseEntity.ok(especializacionService.getAll());
     }
 
     @GetMapping("/{id}")
-    public Especializacion getEspecializacionById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
-        return especializacionService.getById(id);
+    public ResponseEntity<EspecializacionResponse> getEspecializacionById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
+        return ResponseEntity.ok(especializacionService.getById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Especializacion> createEspecializacion(@RequestBody @Valid Especializacion especializacion) {
-        Especializacion creada = especializacionService.create(especializacion);
+    public ResponseEntity<EspecializacionResponse> createEspecializacion(@RequestBody @Valid EspecializacionRequest especializacionRequest) {
+        EspecializacionResponse creada = especializacionService.create(especializacionRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Especializacion> updateEspecializacion(@PathVariable @Positive(message = "El id debe ser positivo") Integer id, @RequestBody @Valid Especializacion especializacion) {
-        return ResponseEntity.ok(especializacionService.update(id, especializacion));
+    public ResponseEntity<EspecializacionResponse> updateEspecializacion(@PathVariable @Positive(message = "El id debe ser positivo") Integer id, @RequestBody @Valid EspecializacionRequest especializacionRequest) {
+        return ResponseEntity.ok(especializacionService.update(id, especializacionRequest));
     }
 
     @DeleteMapping("/{id}")
