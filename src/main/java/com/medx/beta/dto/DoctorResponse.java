@@ -1,6 +1,9 @@
 package com.medx.beta.dto;
 
 import lombok.Data;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -13,7 +16,8 @@ public class DoctorResponse {
     private Integer sedeId;
     private Integer turnoId;
     private Boolean estaActivo;
-    private String fechaCreacion;
-    private List<Integer> especializacionIds;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
+    private List<Integer> especializacionIds = Collections.emptyList();
 }
 

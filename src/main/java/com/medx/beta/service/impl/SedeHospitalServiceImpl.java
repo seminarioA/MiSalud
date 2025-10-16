@@ -10,23 +10,27 @@ import com.medx.beta.repository.SedeHospitalRepository;
 import com.medx.beta.service.SedeHospitalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SedeHospitalServiceImpl implements SedeHospitalService {
 
     private final SedeHospitalRepository sedeHospitalRepository;
     private final HospitalRepository hospitalRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<SedeHospitalResponse> getAll() {
         return sedeHospitalRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SedeHospitalResponse getById(Integer id) {
         SedeHospital sede = sedeHospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Sede hospital no encontrada con id: " + id));
@@ -66,6 +70,7 @@ public class SedeHospitalServiceImpl implements SedeHospitalService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SedeHospitalResponse> getByHospital(Integer hospitalId) {
         return sedeHospitalRepository.findByHospital_HospitalId(hospitalId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
@@ -77,7 +82,7 @@ public class SedeHospitalServiceImpl implements SedeHospitalService {
         dto.setSede(sede.getSede());
         dto.setUbicacion(sede.getUbicacion());
         dto.setHospitalId(sede.getHospital() != null ? sede.getHospital().getHospitalId() : null);
-        dto.setFechaCreacion(sede.getFechaCreacion() != null ? sede.getFechaCreacion().toString() : null);
+        dto.setFechaCreacion(sede.getFechaCreacion());
         return dto;
     }
 }

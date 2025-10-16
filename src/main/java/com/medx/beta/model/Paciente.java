@@ -56,31 +56,47 @@ public class Paciente {
     private Boolean estaActivo = true;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private java.time.LocalDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion", nullable = false)
+    private LocalDateTime fechaActualizacion;
 
     @OneToMany(mappedBy = "paciente", fetch = FetchType.LAZY)
     private List<CitaMedica> citas;
 
     @PrePersist
     private void prePersist() {
-        if (estaActivo == null) estaActivo = true;
-        if (fechaNacimiento != null && fechaNacimiento.isAfter(java.time.LocalDate.now())) {
-            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
+        normalize();
+        validarFechaNacimiento();
+        if (estaActivo == null) {
+            estaActivo = true;
         }
-        if (fechaNacimiento != null && fechaNacimiento.isBefore(java.time.LocalDate.now().minusYears(120))) {
-            throw new IllegalArgumentException("La fecha de nacimiento no puede ser mayor a 120 años");
-        }
+        LocalDateTime now = LocalDateTime.now();
+        fechaCreacion = now;
+        fechaActualizacion = now;
     }
 
     @PreUpdate
+    private void preUpdate() {
+        normalize();
+        validarFechaNacimiento();
+        fechaActualizacion = LocalDateTime.now();
+    }
+
     private void normalize() {
         primerNombre = trim(primerNombre);
         segundoNombre = trim(segundoNombre);
         primerApellido = trim(primerApellido);
         segundoApellido = trim(segundoApellido);
         domicilio = trim(domicilio);
-        if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now();
+    }
+
+    private void validarFechaNacimiento() {
+        if (fechaNacimiento != null && fechaNacimiento.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
+        }
+        if (fechaNacimiento != null && fechaNacimiento.isBefore(LocalDate.now().minusYears(120))) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser mayor a 120 años");
         }
     }
 

@@ -12,6 +12,7 @@ import com.medx.beta.repository.PacienteRepository;
 import com.medx.beta.service.CitaMedicaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CitaMedicaServiceImpl implements CitaMedicaService {
 
     private final CitaMedicaRepository citaMedicaRepository;
@@ -26,6 +28,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     private final PacienteRepository pacienteRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CitaMedicaResponse> getAll() {
         return citaMedicaRepository.findAll().stream()
                 .map(this::toResponse)
@@ -33,6 +36,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CitaMedicaResponse getById(Integer id) {
         CitaMedica cita = citaMedicaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Cita médica no encontrada con id: " + id));
@@ -41,18 +45,17 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
 
     @Override
     public CitaMedicaResponse create(CitaMedicaRequest citaMedicaRequest) {
-        Doctor doctor = doctorRepository.findById(citaMedicaRequest.getDoctorId())
-                .orElseThrow(() -> new NotFoundException("Doctor no encontrado con id: " + citaMedicaRequest.getDoctorId()));
-        Paciente paciente = pacienteRepository.findById(citaMedicaRequest.getPacienteId())
-                .orElseThrow(() -> new NotFoundException("Paciente no encontrado con id: " + citaMedicaRequest.getPacienteId()));
+        Doctor doctor = doctorRepository.findByDoctorIdAndEstaActivoTrue(citaMedicaRequest.getDoctorId())
+                .orElseThrow(() -> new NotFoundException("Doctor no activo con id: " + citaMedicaRequest.getDoctorId()));
+        Paciente paciente = pacienteRepository.findByPacienteIdAndEstaActivoTrue(citaMedicaRequest.getPacienteId())
+                .orElseThrow(() -> new NotFoundException("Paciente no activo con id: " + citaMedicaRequest.getPacienteId()));
         CitaMedica cita = new CitaMedica();
-        cita.setCitaId(null);
         cita.setFecha(citaMedicaRequest.getFecha());
         cita.setCosto(citaMedicaRequest.getCosto());
         cita.setDoctor(doctor);
         cita.setPaciente(paciente);
-        // Si tienes tipoCita y estado como enums, deberías mapearlos aquí
-        // cita.setTipoCita(CitaMedica.TipoCita.valueOf(citaMedicaRequest.getTipoCita()));
+        cita.setTipoCita(citaMedicaRequest.getTipoCita());
+        cita.setEstado(citaMedicaRequest.getEstado());
         CitaMedica saved = citaMedicaRepository.save(cita);
         return toResponse(saved);
     }
@@ -61,15 +64,16 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     public CitaMedicaResponse update(Integer id, CitaMedicaRequest citaMedicaRequest) {
         CitaMedica existente = citaMedicaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Cita médica no encontrada con id: " + id));
-        Doctor doctor = doctorRepository.findById(citaMedicaRequest.getDoctorId())
-                .orElseThrow(() -> new NotFoundException("Doctor no encontrado con id: " + citaMedicaRequest.getDoctorId()));
-        Paciente paciente = pacienteRepository.findById(citaMedicaRequest.getPacienteId())
-                .orElseThrow(() -> new NotFoundException("Paciente no encontrado con id: " + citaMedicaRequest.getPacienteId()));
+        Doctor doctor = doctorRepository.findByDoctorIdAndEstaActivoTrue(citaMedicaRequest.getDoctorId())
+                .orElseThrow(() -> new NotFoundException("Doctor no activo con id: " + citaMedicaRequest.getDoctorId()));
+        Paciente paciente = pacienteRepository.findByPacienteIdAndEstaActivoTrue(citaMedicaRequest.getPacienteId())
+                .orElseThrow(() -> new NotFoundException("Paciente no activo con id: " + citaMedicaRequest.getPacienteId()));
         existente.setFecha(citaMedicaRequest.getFecha());
         existente.setCosto(citaMedicaRequest.getCosto());
         existente.setDoctor(doctor);
         existente.setPaciente(paciente);
-        // existente.setTipoCita(CitaMedica.TipoCita.valueOf(citaMedicaRequest.getTipoCita()));
+        existente.setTipoCita(citaMedicaRequest.getTipoCita());
+        existente.setEstado(citaMedicaRequest.getEstado());
         CitaMedica saved = citaMedicaRepository.save(existente);
         return toResponse(saved);
     }
@@ -82,6 +86,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CitaMedicaResponse> getByDoctor(Integer doctorId) {
         return citaMedicaRepository.findByDoctor_DoctorId(doctorId).stream()
                 .map(this::toResponse)
@@ -89,6 +94,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CitaMedicaResponse> getByPaciente(Integer pacienteId) {
         return citaMedicaRepository.findByPaciente_PacienteId(pacienteId).stream()
                 .map(this::toResponse)
@@ -96,6 +102,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CitaMedicaResponse> getByFechaBetween(LocalDateTime inicio, LocalDateTime fin) {
         return citaMedicaRepository.findByFechaBetween(inicio, fin).stream()
                 .map(this::toResponse)
@@ -104,11 +111,15 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
 
     private CitaMedicaResponse toResponse(CitaMedica cita) {
         CitaMedicaResponse dto = new CitaMedicaResponse();
-        dto.setCitaId(cita.getCitaId() != null ? cita.getCitaId().longValue() : null);
+        dto.setCitaId(cita.getCitaId());
         dto.setFecha(cita.getFecha());
+        dto.setTipoCita(cita.getTipoCita());
+        dto.setEstado(cita.getEstado());
         dto.setCosto(cita.getCosto());
         dto.setDoctorId(cita.getDoctor() != null ? cita.getDoctor().getDoctorId() : null);
         dto.setPacienteId(cita.getPaciente() != null ? cita.getPaciente().getPacienteId() : null);
+        dto.setFechaCreacion(cita.getFechaCreacion());
+        dto.setFechaActualizacion(cita.getFechaActualizacion());
         return dto;
     }
 }

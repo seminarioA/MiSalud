@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -38,7 +39,7 @@ public class Doctor {
     @NotBlank(message = "El segundo apellido es obligatorio")
     @Size(max = 75, message = "El segundo apellido no debe exceder 75 caracteres")
     @Pattern(regexp = "^[\\p{L} .'-]+$", message = "El segundo apellido solo puede contener letras y espacios")
-    @Column(nullable = true, length = 75)
+    @Column(nullable = false, length = 75)
     private String segundoApellido;
 
     @NotNull(message = "La sede del hospital es obligatoria")
@@ -55,7 +56,10 @@ public class Doctor {
     private Boolean estaActivo = true;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private java.time.LocalDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion", nullable = false)
+    private LocalDateTime fechaActualizacion;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -66,7 +70,22 @@ public class Doctor {
     private List<Especializacion> especializaciones;
 
     @PrePersist
+    private void prePersist() {
+        normalize();
+        if (estaActivo == null) {
+            estaActivo = true;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        fechaCreacion = now;
+        fechaActualizacion = now;
+    }
+
     @PreUpdate
+    private void preUpdate() {
+        normalize();
+        fechaActualizacion = LocalDateTime.now();
+    }
+
     private void normalize() {
         primerNombre = trim(primerNombre);
         segundoNombre = trim(segundoNombre);
