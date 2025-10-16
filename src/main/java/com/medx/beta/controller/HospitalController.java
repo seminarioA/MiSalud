@@ -1,38 +1,41 @@
 package com.medx.beta.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.medx.beta.service.HospitalService;
 import com.medx.beta.dto.HospitalRequest;
 import com.medx.beta.dto.HospitalResponse;
-
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.medx.beta.service.HospitalService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/hospitales")
 @Validated
+@RequiredArgsConstructor
 public class HospitalController {
 
-    @Autowired
-    private HospitalService hospitalService;
+    private final HospitalService hospitalService;
 
     @GetMapping
-    public List<HospitalResponse> getAllHospitales() {
-        return hospitalService.getAll();
+    public ResponseEntity<List<HospitalResponse>> getAllHospitales() {
+        return ResponseEntity.ok(hospitalService.getAll());
     }
 
     @GetMapping("/{id}")
-    public HospitalResponse getHospitalById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
-        return hospitalService.getById(id);
+    public ResponseEntity<HospitalResponse> getHospitalById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
+        return ResponseEntity.ok(hospitalService.getById(id));
     }
 
     @PostMapping
@@ -42,9 +45,9 @@ public class HospitalController {
     }
 
     @PutMapping("/{id}")
-    public HospitalResponse updateHospital(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
-                                   @RequestBody @Valid HospitalRequest hospitalRequest) {
-        return hospitalService.update(id, hospitalRequest);
+    public ResponseEntity<HospitalResponse> updateHospital(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
+                                                   @RequestBody @Valid HospitalRequest hospitalRequest) {
+        return ResponseEntity.ok(hospitalService.update(id, hospitalRequest));
     }
 
     @DeleteMapping("/{id}")

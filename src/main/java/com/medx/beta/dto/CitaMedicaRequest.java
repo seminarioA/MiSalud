@@ -1,7 +1,10 @@
 package com.medx.beta.dto;
 
+import com.medx.beta.model.CitaMedica;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import jakarta.validation.constraints.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -10,8 +13,11 @@ public class CitaMedicaRequest {
     @NotNull(message = "La fecha es obligatoria")
     private LocalDateTime fecha;
 
-    @NotBlank(message = "El tipo de cita es obligatorio")
-    private String tipoCita;
+    @NotNull(message = "El tipo de cita es obligatorio")
+    private CitaMedica.TipoCita tipoCita;
+
+    @NotNull(message = "El estado de la cita es obligatorio")
+    private CitaMedica.EstadoCita estado;
 
     @NotNull(message = "El costo es obligatorio")
     @DecimalMin(value = "0.00", inclusive = true)

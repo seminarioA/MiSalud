@@ -1,7 +1,8 @@
 package com.medx.beta.dto;
 
 import lombok.Data;
-import jakarta.validation.constraints.*;
+
+import java.time.LocalDateTime;
 
 @Data
 public class SedeHospitalResponse {
@@ -9,6 +10,6 @@ public class SedeHospitalResponse {
     private String sede;
     private String ubicacion;
     private Integer hospitalId;
-    private String fechaCreacion;
+    private LocalDateTime fechaCreacion;
 }
 

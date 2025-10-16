@@ -2,6 +2,9 @@ package com.medx.beta.dto;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Data
 public class PacienteResponse {
     private Integer pacienteId;
@@ -9,9 +12,10 @@ public class PacienteResponse {
     private String segundoNombre;
     private String primerApellido;
     private String segundoApellido;
-    private java.time.LocalDate fechaNacimiento;
+    private LocalDate fechaNacimiento;
     private String domicilio;
     private Boolean estaActivo;
-    private String fechaCreacion;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
 }
 

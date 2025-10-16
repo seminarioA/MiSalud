@@ -8,25 +8,29 @@ import com.medx.beta.repository.PacienteRepository;
 import com.medx.beta.service.PacienteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PacienteServiceImpl implements PacienteService {
 
     private final PacienteRepository pacienteRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<PacienteResponse> getAll() {
-        return pacienteRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
+        return pacienteRepository.findAllActivos().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PacienteResponse getById(Integer id) {
-        Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Paciente no encontrado con id: " + id));
+        Paciente paciente = pacienteRepository.findByPacienteIdAndEstaActivoTrue(id)
+                .orElseThrow(() -> new NotFoundException("Paciente no activo con id: " + id));
         return toResponse(paciente);
     }
 
@@ -45,8 +49,8 @@ public class PacienteServiceImpl implements PacienteService {
 
     @Override
     public PacienteResponse update(Integer id, PacienteRequest pacienteRequest) {
-        Paciente existente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Paciente no encontrado con id: " + id));
+        Paciente existente = pacienteRepository.findByPacienteIdAndEstaActivoTrue(id)
+                .orElseThrow(() -> new NotFoundException("Paciente no activo con id: " + id));
         existente.setPrimerNombre(pacienteRequest.getPrimerNombre());
         existente.setSegundoNombre(pacienteRequest.getSegundoNombre());
         existente.setPrimerApellido(pacienteRequest.getPrimerApellido());
@@ -59,9 +63,9 @@ public class PacienteServiceImpl implements PacienteService {
 
     @Override
     public void deleteById(Integer id) {
-        Paciente existente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Paciente no encontrado con id: " + id));
-        pacienteRepository.delete(existente);
+        Paciente existente = pacienteRepository.findByPacienteIdAndEstaActivoTrue(id)
+                .orElseThrow(() -> new NotFoundException("Paciente no activo con id: " + id));
+        pacienteRepository.desactivarPorId(existente.getPacienteId());
     }
 
     private PacienteResponse toResponse(Paciente paciente) {
@@ -74,7 +78,8 @@ public class PacienteServiceImpl implements PacienteService {
         dto.setFechaNacimiento(paciente.getFechaNacimiento());
         dto.setDomicilio(paciente.getDomicilio());
         dto.setEstaActivo(paciente.getEstaActivo());
-        dto.setFechaCreacion(paciente.getFechaCreacion() != null ? paciente.getFechaCreacion().toString() : null);
+        dto.setFechaCreacion(paciente.getFechaCreacion());
+        dto.setFechaActualizacion(paciente.getFechaActualizacion());
         return dto;
     }
 }

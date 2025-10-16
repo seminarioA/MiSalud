@@ -1,28 +1,31 @@
 package com.medx.beta.controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import com.medx.beta.service.EspecializacionService;
 import com.medx.beta.dto.EspecializacionRequest;
 import com.medx.beta.dto.EspecializacionResponse;
-import java.util.List;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-
+import com.medx.beta.service.EspecializacionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/especializaciones")
 @Validated
 @RequiredArgsConstructor
 public class EspecializacionController {
-    
+
     private final EspecializacionService especializacionService;
 
     @GetMapping
@@ -42,7 +45,8 @@ public class EspecializacionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EspecializacionResponse> updateEspecializacion(@PathVariable @Positive(message = "El id debe ser positivo") Integer id, @RequestBody @Valid EspecializacionRequest especializacionRequest) {
+    public ResponseEntity<EspecializacionResponse> updateEspecializacion(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
+                                                                         @RequestBody @Valid EspecializacionRequest especializacionRequest) {
         return ResponseEntity.ok(especializacionService.update(id, especializacionRequest));
     }
 

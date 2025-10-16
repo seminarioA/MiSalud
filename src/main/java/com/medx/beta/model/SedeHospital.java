@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -38,5 +39,25 @@ public class SedeHospital {
     private List<Doctor> doctores;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private java.time.LocalDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion;
+
+    @PrePersist
+    private void prePersist() {
+        fechaCreacion = LocalDateTime.now();
+        normalize();
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        normalize();
+    }
+
+    private void normalize() {
+        sede = trim(sede);
+        ubicacion = trim(ubicacion);
+    }
+
+    private String trim(String value) {
+        return value == null ? null : value.trim();
+    }
 }

@@ -1,30 +1,35 @@
 package com.medx.beta.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.medx.beta.service.HospitalService;
-import com.medx.beta.model.Hospital;
-import com.medx.beta.repository.HospitalRepository;
-import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.dto.HospitalRequest;
 import com.medx.beta.dto.HospitalResponse;
+import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.model.Hospital;
+import com.medx.beta.repository.HospitalRepository;
+import com.medx.beta.service.HospitalService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class HospitalServiceImpl implements HospitalService {
-    
-    @Autowired
-    private HospitalRepository hospitalRepository;
+
+    private final HospitalRepository hospitalRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<HospitalResponse> getAll() {
-        return hospitalRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
+        return hospitalRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HospitalResponse getById(Integer id) {
         Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
@@ -52,7 +57,9 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public void deleteById(Integer id) {
-        hospitalRepository.deleteById(id);
+        Hospital existente = hospitalRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
+        hospitalRepository.delete(existente);
     }
 
     private HospitalResponse toResponse(Hospital hospital) {
@@ -60,8 +67,7 @@ public class HospitalServiceImpl implements HospitalService {
         dto.setHospitalId(hospital.getHospitalId());
         dto.setNombre(hospital.getNombre());
         dto.setDescripcion(hospital.getDescripcion());
-        dto.setFechaCreacion(hospital.getFechaCreacion() != null ? hospital.getFechaCreacion().toString() : null);
+        dto.setFechaCreacion(hospital.getFechaCreacion());
         return dto;
     }
-
 }
