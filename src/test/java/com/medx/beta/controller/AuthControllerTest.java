@@ -7,6 +7,7 @@ import com.medx.beta.dto.RegistroRequest;
 import com.medx.beta.model.Usuario;
 import com.medx.beta.service.AuthService;
 import com.medx.beta.service.JwtService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,10 +20,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.Mockito.mock;
 
 @WebMvcTest(controllers = AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -47,6 +47,11 @@ class AuthControllerTest {
 
     @Autowired
     private AuthService authService;
+
+    @BeforeEach
+    void resetMocks() {
+        reset(authService);
+    }
 
     private RegistroRequest buildRegistroValido() {
         RegistroRequest r = new RegistroRequest();
