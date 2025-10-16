@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -65,6 +66,13 @@ class HospitalControllerTest {
     }
 
     @Test
+    void getById_idNegativo_badRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/hospitales/{id}", -5))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El id debe ser positivo")));
+    }
+
+    @Test
     void create_created() throws Exception {
         HospitalRequest req = new HospitalRequest();
         req.setNombre("Hosp A");
@@ -77,6 +85,18 @@ class HospitalControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.hospitalId").value(10));
+    }
+
+    @Test
+    void create_requestInvalido_badRequest() throws Exception {
+        HospitalRequest req = new HospitalRequest();
+
+        mockMvc.perform(post("/api/v1/hospitales")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("nombre")))
+                .andExpect(jsonPath("$.message").value(containsString("must not be blank")));
     }
 
     @Test

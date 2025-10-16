@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -63,6 +64,13 @@ class EspecializacionControllerTest {
     }
 
     @Test
+    void getById_idNegativo_badRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/especializaciones/{id}", -1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El id debe ser positivo")));
+    }
+
+    @Test
     void create_created() throws Exception {
         EspecializacionRequest req = new EspecializacionRequest();
         req.setNombre("Onco");
@@ -74,6 +82,17 @@ class EspecializacionControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.especializacionId").value(10));
+    }
+
+    @Test
+    void create_requestInvalido_badRequest() throws Exception {
+        EspecializacionRequest req = new EspecializacionRequest();
+
+        mockMvc.perform(post("/api/v1/especializaciones")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El nombre es obligatorio")));
     }
 
     @Test

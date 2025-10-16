@@ -3,6 +3,7 @@ package com.medx.beta.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medx.beta.dto.CitaMedicaRequest;
 import com.medx.beta.dto.CitaMedicaResponse;
+import com.medx.beta.model.CitaMedica;
 import com.medx.beta.service.CitaMedicaService;
 import com.medx.beta.service.JwtService;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -66,6 +68,13 @@ class CitaMedicaControllerTest {
     }
 
     @Test
+    void getById_invalidId_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/citas/{id}", -1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El id debe ser positivo")));
+    }
+
+    @Test
     void getByDoctor_ok() throws Exception {
         CitaMedicaResponse r = new CitaMedicaResponse();
         r.setCitaId(3L);
@@ -102,7 +111,8 @@ class CitaMedicaControllerTest {
     void create_created() throws Exception {
         CitaMedicaRequest req = new CitaMedicaRequest();
         req.setFecha(LocalDateTime.now().plusDays(1));
-        req.setTipoCita("CONTROL");
+        req.setTipoCita(CitaMedica.TipoCita.PRESENCIAL);
+        req.setEstado(CitaMedica.EstadoCita.PENDIENTE);
         req.setCosto(new BigDecimal("50.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
@@ -121,7 +131,8 @@ class CitaMedicaControllerTest {
     void update_ok() throws Exception {
         CitaMedicaRequest req = new CitaMedicaRequest();
         req.setFecha(LocalDateTime.now().plusDays(2));
-        req.setTipoCita("URGENCIA");
+        req.setTipoCita(CitaMedica.TipoCita.TELEMEDICINA);
+        req.setEstado(CitaMedica.EstadoCita.CONFIRMADA);
         req.setCosto(new BigDecimal("100.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
@@ -142,5 +153,16 @@ class CitaMedicaControllerTest {
 
         mockMvc.perform(delete("/api/v1/citas/{id}", 9))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void create_invalidRequest_returnsBadRequest() throws Exception {
+        CitaMedicaRequest req = new CitaMedicaRequest();
+
+        mockMvc.perform(post("/api/v1/citas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("La fecha es obligatoria")));
     }
 }

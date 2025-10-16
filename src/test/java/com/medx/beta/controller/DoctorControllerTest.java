@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -63,6 +64,13 @@ class DoctorControllerTest {
     }
 
     @Test
+    void obtener_idNegativo_badRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/doctores/{id}", -1))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El id debe ser positivo")));
+    }
+
+    @Test
     void crear_created() throws Exception {
         DoctorRequest req = new DoctorRequest();
         req.setPrimerNombre("Ana");
@@ -79,6 +87,17 @@ class DoctorControllerTest {
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.doctorId").value(10));
+    }
+
+    @Test
+    void crear_requestInvalido_badRequest() throws Exception {
+        DoctorRequest req = new DoctorRequest();
+
+        mockMvc.perform(post("/api/v1/doctores")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El primer nombre es obligatorio")));
     }
 
     @Test
