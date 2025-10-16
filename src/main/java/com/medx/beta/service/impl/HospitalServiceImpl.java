@@ -57,9 +57,7 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public void deleteById(Integer id) {
-        Hospital existente = hospitalRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
-        hospitalRepository.delete(existente);
+        hospitalRepository.deleteById(id);
     }
 
     private HospitalResponse toResponse(Hospital hospital) {

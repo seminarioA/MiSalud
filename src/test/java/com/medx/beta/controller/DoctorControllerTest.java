@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,7 +25,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = DoctorController.class, properties = "spring.main.allow-bean-definition-overriding=true")
 @AutoConfigureMockMvc(addFilters = false)
+@Import(DoctorControllerTest.MockConfig.class)
 class DoctorControllerTest {
+
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        DoctorService doctorService() { return mock(DoctorService.class); }
+        @Bean
+        JwtService jwtService() { return mock(JwtService.class); }
+        @Bean
+        UserDetailsService userDetailsService() { return mock(UserDetailsService.class); }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,15 +44,8 @@ class DoctorControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private DoctorService doctorService;
-
-    // Mock de dependencias de seguridad requeridas por JwtAuthenticationFilter
-    @MockBean
-    private JwtService jwtService;
-
-    @MockBean
-    private UserDetailsService userDetailsService;
 
     @Test
     void listar_ok() throws Exception {

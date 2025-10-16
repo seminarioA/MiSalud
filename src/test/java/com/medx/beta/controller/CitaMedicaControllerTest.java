@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,10 +27,22 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.mock;
 
 @WebMvcTest(controllers = CitaMedicaController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(CitaMedicaControllerTest.MockConfig.class)
 class CitaMedicaControllerTest {
+
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        CitaMedicaService citaMedicaService() { return mock(CitaMedicaService.class); }
+        @Bean
+        JwtService jwtService() { return mock(JwtService.class); }
+        @Bean
+        UserDetailsService userDetailsService() { return mock(UserDetailsService.class); }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,19 +50,13 @@ class CitaMedicaControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private CitaMedicaService citaMedicaService;
-
-    @MockBean
-    private JwtService jwtService;
-
-    @MockBean
-    private UserDetailsService userDetailsService;
 
     @Test
     void getAll_ok() throws Exception {
         CitaMedicaResponse r = new CitaMedicaResponse();
-        r.setCitaId(1L);
+        r.setCitaId(1);
         when(citaMedicaService.getAll()).thenReturn(List.of(r));
 
         mockMvc.perform(get("/api/v1/citas"))
@@ -59,7 +67,7 @@ class CitaMedicaControllerTest {
     @Test
     void getById_ok() throws Exception {
         CitaMedicaResponse r = new CitaMedicaResponse();
-        r.setCitaId(2L);
+        r.setCitaId(2);
         when(citaMedicaService.getById(2)).thenReturn(r);
 
         mockMvc.perform(get("/api/v1/citas/{id}", 2))
@@ -77,7 +85,7 @@ class CitaMedicaControllerTest {
     @Test
     void getByDoctor_ok() throws Exception {
         CitaMedicaResponse r = new CitaMedicaResponse();
-        r.setCitaId(3L);
+        r.setCitaId(3);
         when(citaMedicaService.getByDoctor(7)).thenReturn(List.of(r));
 
         mockMvc.perform(get("/api/v1/citas/doctor/{doctorId}", 7))
@@ -88,7 +96,7 @@ class CitaMedicaControllerTest {
     @Test
     void getByPaciente_ok() throws Exception {
         CitaMedicaResponse r = new CitaMedicaResponse();
-        r.setCitaId(4L);
+        r.setCitaId(4);
         when(citaMedicaService.getByPaciente(5)).thenReturn(List.of(r));
 
         mockMvc.perform(get("/api/v1/citas/paciente/{pacienteId}", 5))
@@ -112,12 +120,12 @@ class CitaMedicaControllerTest {
         CitaMedicaRequest req = new CitaMedicaRequest();
         req.setFecha(LocalDateTime.now().plusDays(1));
         req.setTipoCita(CitaMedica.TipoCita.PRESENCIAL);
-        req.setEstado(CitaMedica.EstadoCita.PENDIENTE);
+        req.setEstado(CitaMedica.EstadoCita.Reservada);
         req.setCosto(new BigDecimal("50.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
         CitaMedicaResponse resp = new CitaMedicaResponse();
-        resp.setCitaId(10L);
+        resp.setCitaId(10);
         when(citaMedicaService.create(any())).thenReturn(resp);
 
         mockMvc.perform(post("/api/v1/citas")
@@ -132,12 +140,12 @@ class CitaMedicaControllerTest {
         CitaMedicaRequest req = new CitaMedicaRequest();
         req.setFecha(LocalDateTime.now().plusDays(2));
         req.setTipoCita(CitaMedica.TipoCita.TELEMEDICINA);
-        req.setEstado(CitaMedica.EstadoCita.CONFIRMADA);
+        req.setEstado(CitaMedica.EstadoCita.Confirmada);
         req.setCosto(new BigDecimal("100.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
         CitaMedicaResponse resp = new CitaMedicaResponse();
-        resp.setCitaId(11L);
+        resp.setCitaId(11);
         when(citaMedicaService.update(eq(11), any())).thenReturn(resp);
 
         mockMvc.perform(put("/api/v1/citas/{id}", 11)

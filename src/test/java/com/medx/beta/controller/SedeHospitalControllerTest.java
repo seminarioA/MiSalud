@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,10 +25,22 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.mock;
 
 @WebMvcTest(controllers = SedeHospitalController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(SedeHospitalControllerTest.MockConfig.class)
 class SedeHospitalControllerTest {
+
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        SedeHospitalService sedeHospitalService() { return mock(SedeHospitalService.class); }
+        @Bean
+        JwtService jwtService() { return mock(JwtService.class); }
+        @Bean
+        UserDetailsService userDetailsService() { return mock(UserDetailsService.class); }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,14 +48,8 @@ class SedeHospitalControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private SedeHospitalService sedeHospitalService;
-
-    @MockBean
-    private JwtService jwtService;
-
-    @MockBean
-    private UserDetailsService userDetailsService;
 
     @Test
     void getAll_ok() throws Exception {
@@ -135,4 +143,3 @@ class SedeHospitalControllerTest {
                 .andExpect(status().isNoContent());
     }
 }
-
