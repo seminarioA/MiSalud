@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,26 +26,31 @@ public class CitaMedicaController {
     private final CitaMedicaService citaMedicaService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
     public ResponseEntity<List<CitaMedicaResponse>> getAll() {
         return ResponseEntity.ok(citaMedicaService.getAll());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA') or (hasRole('PACIENTE') and @citaMedicaService.isOwner(#id, authentication.principal.username))")
     public ResponseEntity<CitaMedicaResponse> getById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         return ResponseEntity.ok(citaMedicaService.getById(id));
     }
 
     @GetMapping("/doctor/{doctorId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA') or (hasRole('DOCTOR') and #doctorId == authentication.principal.doctorId)")
     public ResponseEntity<List<CitaMedicaResponse>> getByDoctor(@PathVariable @Positive(message = "El id debe ser positivo") Integer doctorId) {
         return ResponseEntity.ok(citaMedicaService.getByDoctor(doctorId));
     }
 
     @GetMapping("/paciente/{pacienteId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA') or (hasRole('PACIENTE') and #pacienteId == authentication.principal.pacienteId)")
     public ResponseEntity<List<CitaMedicaResponse>> getByPaciente(@PathVariable @Positive(message = "El id debe ser positivo") Integer pacienteId) {
         return ResponseEntity.ok(citaMedicaService.getByPaciente(pacienteId));
     }
 
     @GetMapping("/rango")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
     public ResponseEntity<List<CitaMedicaResponse>> getByRangoFechas(
             @RequestParam @NotNull(message = "inicio es obligatorio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
             @RequestParam @NotNull(message = "fin es obligatorio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fin) {
@@ -55,18 +61,21 @@ public class CitaMedicaController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     public ResponseEntity<CitaMedicaResponse> create(@RequestBody @Valid CitaMedicaRequest citaMedicaRequest) {
         CitaMedicaResponse creada = citaMedicaService.create(citaMedicaRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     public ResponseEntity<CitaMedicaResponse> update(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
                                            @RequestBody @Valid CitaMedicaRequest citaMedicaRequest) {
         return ResponseEntity.ok(citaMedicaService.update(id, citaMedicaRequest));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         citaMedicaService.deleteById(id);
         return ResponseEntity.noContent().build();

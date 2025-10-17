@@ -33,4 +33,9 @@ public class RegistroRequest {
     @Size(max = 75, message = "El apellido no debe exceder 75 caracteres")
     @Pattern(regexp = "^[\\p{L} .'-]+$", message = "El apellido solo puede contener letras y espacios")
     private String apellido;
+
+    // Opcional: si no se especifica, se asignará PACIENTE por defecto
+    @Pattern(regexp = "^(PACIENTE|DOCTOR|ADMIN|RECEPCIONISTA)$", 
+             message = "El rol debe ser: PACIENTE, DOCTOR, ADMIN o RECEPCIONISTA")
+    private String rol;
 }

@@ -59,7 +59,10 @@ public class Usuario extends AuditableEntity implements UserDetails {
     private Boolean activo = true;
 
     public enum Role {
-        PACIENTE, DOCTOR, ADMIN
+        PACIENTE,    // Puede ver sus propias citas y perfil
+        DOCTOR,      // Puede gestionar sus citas y ver pacientes
+        ADMIN,       // Puede hacer todo: CRUD completo
+        RECEPCIONISTA // Puede crear/ver citas, pero no eliminar
     }
 
     @Override

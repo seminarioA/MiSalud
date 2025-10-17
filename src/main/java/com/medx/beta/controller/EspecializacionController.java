@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -29,28 +30,33 @@ public class EspecializacionController {
     private final EspecializacionService especializacionService;
 
     @GetMapping
+    @PreAuthorize("permitAll()") // Público - cualquiera puede ver especialidades
     public ResponseEntity<List<EspecializacionResponse>> getAllEspecializaciones() {
         return ResponseEntity.ok(especializacionService.getAll());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()") // Público - para mostrar en formularios
     public ResponseEntity<EspecializacionResponse> getEspecializacionById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         return ResponseEntity.ok(especializacionService.getById(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EspecializacionResponse> createEspecializacion(@RequestBody @Valid EspecializacionRequest especializacionRequest) {
         EspecializacionResponse creada = especializacionService.create(especializacionRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EspecializacionResponse> updateEspecializacion(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
                                                                          @RequestBody @Valid EspecializacionRequest especializacionRequest) {
         return ResponseEntity.ok(especializacionService.update(id, especializacionRequest));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Solo ADMIN puede eliminar especialidades
     public ResponseEntity<Void> deleteEspecializacion(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         especializacionService.deleteById(id);
         return ResponseEntity.noContent().build();

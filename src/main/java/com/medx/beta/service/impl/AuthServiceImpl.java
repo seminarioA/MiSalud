@@ -50,7 +50,17 @@ public class AuthServiceImpl implements AuthService {
         usuario.setPassword(passwordEncoder.encode(registroRequest.getPassword()));
         usuario.setNombre(registroRequest.getNombre());
         usuario.setApellido(registroRequest.getApellido());
-        usuario.setRol(Usuario.Role.PACIENTE); // Por defecto, nuevo usuario es paciente
+        
+        // Asignar rol (si se especifica, sino PACIENTE por defecto)
+        System.out.println("DEBUG - Rol recibido en request: " + registroRequest.getRol());
+        if (registroRequest.getRol() != null && !registroRequest.getRol().trim().isEmpty()) {
+            Usuario.Role rolAsignado = Usuario.Role.valueOf(registroRequest.getRol().toUpperCase());
+            System.out.println("DEBUG - Rol asignado: " + rolAsignado);
+            usuario.setRol(rolAsignado);
+        } else {
+            System.out.println("DEBUG - Asignando rol PACIENTE por defecto");
+            usuario.setRol(Usuario.Role.PACIENTE); // Por defecto
+        }
 
         return usuarioRepository.save(usuario);
     }
