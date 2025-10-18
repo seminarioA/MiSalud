@@ -1,84 +1,48 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Serializable;
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Table(name = "Facturacion", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"cita_id"}, name = "uk_facturacion_cita")
-})
-@Getter
-@Setter
-public class Facturacion implements Serializable {
+@Table(name = "Facturacion",
+        uniqueConstraints = @UniqueConstraint(name = "uq_facturacion__cita", columnNames = "cita_id"))
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class Facturacion {
 
-    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long facturacionId;
+    private Long id;
 
-    @NotNull
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cita_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_facturacion_cita"))
+    @OneToOne(optional = false)
+    @JoinColumn(name = "cita_id", foreignKey = @ForeignKey(name = "fk_facturacion__cita"))
     private CitaMedica cita;
 
-    @NotNull
-    @DecimalMin(value = "0.00", inclusive = true, message = "El monto total no puede ser negativo")
-    @Digits(integer = 8, fraction = 2)
-    @Column(name = "monto_total", nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal montoTotal;
 
-    @NotNull
-    @DecimalMin(value = "0.00", inclusive = true, message = "El monto pagado no puede ser negativo")
-    @Digits(integer = 8, fraction = 2)
-    @Column(name = "monto_pagado", nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal montoPagado = BigDecimal.ZERO;
 
-    public enum TipoPago {
-        EFECTIVO, TARJETA, TRANSFERENCIA, SEGURO, CORTESIA
-    }
-
-    public enum EstadoPago {
-        Pendiente, Parcial, Pagado, Reembolsado, Anulado
-    }
-
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_pago", nullable = false, length = 20)
-    private TipoPago tipoPago = TipoPago.EFECTIVO;
+    @Column(nullable = false, length = 20)
+    private TipoPago tipoPago;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado_pago", nullable = false, length = 20)
-    private EstadoPago estadoPago = EstadoPago.Pendiente;
+    @Column(nullable = false, length = 20)
+    private EstadoPago estadoPago;
 
-    @Column(name = "fecha_emision", nullable = false, updatable = false)
     private LocalDateTime fechaEmision;
-
-    @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.fechaEmision = java.time.LocalDateTime.now();
-        this.fechaActualizacion = java.time.LocalDateTime.now();
-        validarMontos();
-    }
+    @OneToMany(mappedBy = "facturacion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PagoDetalle> pagos;
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.fechaActualizacion = java.time.LocalDateTime.now();
-        validarMontos();
-    }
-
-    private void validarMontos() {
-        if (montoPagado != null && montoTotal != null && montoPagado.compareTo(montoTotal) > 0) {
-            throw new IllegalArgumentException("El monto pagado no puede ser mayor al monto total");
-        }
-    }
+    public enum TipoPago { EFECTIVO, TARJETA, TRANSFERENCIA, SEGURO, CORTESIA }
+    public enum EstadoPago { PENDIENTE, PAGADO, PARCIAL, REEMBOLSADO }
 }
+

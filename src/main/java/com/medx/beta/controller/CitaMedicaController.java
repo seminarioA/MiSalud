@@ -26,13 +26,13 @@ public class CitaMedicaController {
     private final CitaMedicaService citaMedicaService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'ROLE_RECEPCIONISTA')")
     public ResponseEntity<List<CitaMedicaResponse>> getAll() {
         return ResponseEntity.ok(citaMedicaService.getAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA') or (hasRole('PACIENTE') and @citaMedicaService.isOwner(#id, authentication.principal.username))")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
     public ResponseEntity<CitaMedicaResponse> getById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         return ResponseEntity.ok(citaMedicaService.getById(id));
     }

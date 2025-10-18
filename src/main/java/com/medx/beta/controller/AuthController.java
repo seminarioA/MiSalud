@@ -4,7 +4,6 @@ import com.medx.beta.dto.AuthResponse;
 import com.medx.beta.dto.LoginRequest;
 import com.medx.beta.dto.MessageResponse;
 import com.medx.beta.dto.RegistroRequest;
-import com.medx.beta.model.Usuario;
 import com.medx.beta.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

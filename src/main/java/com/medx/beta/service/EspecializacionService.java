@@ -1,7 +1,7 @@
 package com.medx.beta.service;
 import com.medx.beta.dto.EspecializacionRequest;
 import com.medx.beta.dto.EspecializacionResponse;
-import com.medx.beta.model.Especializacion;
+
 import java.util.List;
 
 public interface EspecializacionService {

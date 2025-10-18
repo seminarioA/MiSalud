@@ -1,58 +1,35 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Sede_Hospital", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"hospital_id", "sede"}, name = "uk_sede_nombre_hospital")
-})
-
-@Getter
-@Setter
-public class SedeHospital extends AuditableEntity {
+@Table(name = "Sede_Hospital",
+        uniqueConstraints = @UniqueConstraint(name = "uq_sede__hospital_nombre", columnNames = {"hospital_id", "nombre"}))
+@Getter @Setter @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SedeHospital {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer sedeId;
+    private Long id;
 
-    @NotBlank(message = "El nombre de la sede es obligatorio")
-    @Size(max = 100, message = "El nombre de la sede no debe exceder 100 caracteres")
-    @Column(nullable = false, length = 100)
-    private String sede;
-
-    @Size(max = 255, message = "La ubicación no debe exceder 255 caracteres")
-    @Column(length = 255)
-    private String ubicacion;
-
-    @NotNull(message = "El hospital es obligatorio")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "hospital_id", nullable = false, foreignKey = @ForeignKey(name = "fk_sede_hospital_hospital"))
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "hospital_id", foreignKey = @ForeignKey(name = "fk_sede__hospital"))
     private Hospital hospital;
 
-    @OneToMany(mappedBy = "sedeHospital", fetch = FetchType.LAZY)
-    private List<Doctor> doctores;
+    @Column(nullable = false, length = 100)
+    private String nombre;
 
-    @Override
-    protected void onCreate() {
-        normalize();
-    }
+    private String ubicacion;
+    private String telefono;
+    private String email;
 
-    @Override
-    protected void onUpdate() {
-        normalize();
-    }
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    private void normalize() {
-        sede = trim(sede);
-        ubicacion = trim(ubicacion);
-    }
-
-    private String trim(String value) {
-        return value == null ? null : value.trim();
-    }
+    private LocalDateTime updatedAt;
 }

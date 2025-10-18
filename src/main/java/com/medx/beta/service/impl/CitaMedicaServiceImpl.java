@@ -4,8 +4,6 @@ import com.medx.beta.dto.CitaMedicaRequest;
 import com.medx.beta.dto.CitaMedicaResponse;
 import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.model.CitaMedica;
-import com.medx.beta.model.Doctor;
-import com.medx.beta.model.Paciente;
 import com.medx.beta.repository.CitaMedicaRepository;
 import com.medx.beta.repository.DoctorRepository;
 import com.medx.beta.repository.PacienteRepository;
@@ -107,6 +105,15 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         return citaMedicaRepository.findByFechaBetween(inicio, fin).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isOwner(Integer citaId, Integer pacienteId) {
+        if (citaId == null || pacienteId == null) return false;
+        return citaMedicaRepository.findById(citaId)
+                .map(c -> c.getPaciente() != null && pacienteId.equals(c.getPaciente().getPacienteId()))
+                .orElse(false);
     }
 
     private CitaMedicaResponse toResponse(CitaMedica cita) {

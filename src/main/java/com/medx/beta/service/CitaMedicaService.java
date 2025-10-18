@@ -13,8 +13,9 @@ public interface CitaMedicaService {
     CitaMedicaResponse update(Integer id, CitaMedicaRequest citaMedicaRequest);
     void deleteById(Integer id);
 
-    // Consultas adicionales
     List<CitaMedicaResponse> getByDoctor(Integer doctorId);
     List<CitaMedicaResponse> getByPaciente(Integer pacienteId);
     List<CitaMedicaResponse> getByFechaBetween(LocalDateTime inicio, LocalDateTime fin);
+
+    boolean isOwner(Integer citaId, Integer pacienteId);
 }

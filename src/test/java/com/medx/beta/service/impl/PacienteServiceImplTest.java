@@ -3,7 +3,6 @@ package com.medx.beta.service.impl;
 import com.medx.beta.dto.PacienteRequest;
 import com.medx.beta.dto.PacienteResponse;
 import com.medx.beta.exception.NotFoundException;
-import com.medx.beta.model.Paciente;
 import com.medx.beta.repository.PacienteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
