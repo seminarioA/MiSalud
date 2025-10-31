@@ -23,14 +23,35 @@ El sistema permitirá:
 
 ### 1.3 Definiciones, acrónimos y abreviaturas
 
-| **Término** | **Definición**                                               |
-| ----------- | ------------------------------------------------------------ |
-| **SRS**     | Software Requirements Specification                          |
-| **RBAC**    | Role-Based Access Control                                    |
-| **ABAC**    | Attribute-Based Access Control                               |
-| **CRUD**    | Create, Read, Update, Delete                                 |
-| **Sede**    | Establecimiento médico físico donde se brindan los servicios |
-| **Usuario** | Persona con acceso autenticado al sistema                    |
+| **Término / Acrónimo**           | **Definición**                                                                                                                                                                     |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SRS**                          | *Software Requirements Specification*: documento que especifica los requerimientos funcionales y no funcionales del sistema.                                                       |
+| **RBAC**                         | *Role-Based Access Control*: control de acceso basado en roles jerárquicos definidos por tipo de usuario (doctor, paciente, administrador, recepcionista).                         |
+| **ABAC**                         | *Attribute-Based Access Control*: control de acceso basado en atributos del usuario o del contexto (estado activo, rol vigente, sede única).                                       |
+| **CRUD**                         | *Create, Read, Update, Delete*: operaciones básicas de persistencia y manipulación de datos.                                                                                       |
+| **Sede**                         | Establecimiento médico único donde opera el sistema. No se contempla la gestión multi-sede.                                                                                        |
+| **Persona**                      | Entidad base que representa a un individuo dentro del sistema (natural o profesional). Puede poseer uno o varios roles, como doctor, paciente, administrador o recepcionista.      |
+| **Usuario**                      | Persona registrada con credenciales activas para autenticarse e interactuar con el sistema. Todo usuario es una persona, pero no toda persona es necesariamente un usuario activo. |
+| **Doctor**                       | Persona con rol médico habilitado para atender citas, emitir recetas, registrar procedimientos y actualizar historiales clínicos.                                                  |
+| **Paciente**                     | Persona atendida en el sistema médico. Puede tener historial clínico, citas, procedimientos y facturación asociada.                                                                |
+| **Administrador**                | Usuario con privilegios jerárquicos para gestionar usuarios, roles, permisos, configuración y auditorías del sistema. Puede ser de tipo **GLOBAL** o **SEDE**.                     |
+| **Recepcionista**                | Usuario encargado del registro, confirmación, cancelación y reprogramación de citas médicas.                                                                                       |
+| **Cita Médica**                  | Evento que vincula a un doctor y un paciente en una fecha y hora determinadas dentro de un consultorio. Puede tener estados (`PROGRAMADA`, `EN_CURSO`, `CANCELADA`, `COMPLETADA`). |
+| **Procedimiento Médico**         | Acción clínica o técnica asociada a una cita médica, como una consulta, examen, tratamiento o receta.                                                                              |
+| **Consultorio**                  | Espacio físico asignado a un doctor o procedimiento dentro de la sede. Las citas no pueden solaparse en un mismo consultorio.                                                      |
+| **Historial**                    | Registro de cambios en entidades críticas del sistema (citas, doctores, tarifas, pagos o facturación).                                                                             |
+| **Auditoría Modular**            | Registro segmentado de eventos o cambios por módulo, que asegura la trazabilidad sin afectar el rendimiento global.                                                                |
+| **Eliminación Lógica**           | Desactivación de un registro sin eliminarlo físicamente de la base de datos, preservando su trazabilidad histórica.                                                                |
+| **Inasistencia (“No-Show”)**     | Cita confirmada a la que el paciente no asiste sin previo aviso. Puede generar bloqueo automático temporal hasta reactivación manual.                                              |
+| **Render Cloud Instance**        | Plataforma de alojamiento en la nube utilizada para desplegar la base de datos principal del sistema.                                                                              |
+| **PostgreSQL 17**                | Sistema de gestión de bases de datos relacional utilizado como motor principal del sistema, desplegado en la nube (Render).                                                        |
+| **bcrypt**                       | Algoritmo de cifrado de contraseñas utilizado para almacenar credenciales de usuario de forma segura.                                                                              |
+| **Rol Jerárquico**               | Nivel de autoridad o privilegio dentro del sistema (por ejemplo: `ADMIN_GLOBAL`, `ADMIN_SEDE`, `DOCTOR`, `RECEPCIONISTA`).                                                         |
+| **Permiso de Usuario**           | Autorización individual que complementa las capacidades asignadas a un rol.                                                                                                        |
+| **Trazabilidad**                 | Capacidad del sistema para registrar quién, cuándo y qué cambios se realizaron sobre una entidad.                                                                                  |
+| **Versión de Archivo (Adjunto)** | Mecanismo que permite conservar versiones históricas de documentos médicos o informes asociados a citas o procedimientos.                                                          |
+| **Disponibilidad 99.5 %**        | Porcentaje de tiempo en que el sistema se espera esté operativo y accesible en la nube.                                                                                            |
+
 
 ### 1.4 Referencias
 
