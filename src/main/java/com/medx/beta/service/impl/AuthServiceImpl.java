@@ -1,9 +1,11 @@
 package com.medx.beta.service.impl;
 
 import com.medx.beta.dto.AuthResponse;
+import com.medx.beta.dto.AuthUserResponse;
 import com.medx.beta.dto.LoginRequest;
 import com.medx.beta.dto.RegistroRequest;
 import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.model.Usuario;
 import com.medx.beta.repository.UsuarioRepository;
 import com.medx.beta.service.AuthService;
 import com.medx.beta.service.JwtService;
@@ -49,16 +51,11 @@ public class AuthServiceImpl implements AuthService {
         usuario.setPassword(passwordEncoder.encode(registroRequest.getPassword()));
         usuario.setNombre(registroRequest.getNombre());
         usuario.setApellido(registroRequest.getApellido());
-        
-        // Asignar rol (si se especifica, sino PACIENTE por defecto)
-        System.out.println("DEBUG - Rol recibido en request: " + registroRequest.getRol());
+
         if (registroRequest.getRol() != null && !registroRequest.getRol().trim().isEmpty()) {
-            Usuario.Role rolAsignado = Usuario.Role.valueOf(registroRequest.getRol().toUpperCase());
-            System.out.println("DEBUG - Rol asignado: " + rolAsignado);
-            usuario.setRol(rolAsignado);
+            usuario.setRol(Usuario.Role.valueOf(registroRequest.getRol().toUpperCase()));
         } else {
-            System.out.println("DEBUG - Asignando rol PACIENTE por defecto");
-            usuario.setRol(Usuario.Role.PACIENTE); // Por defecto
+            usuario.setRol(Usuario.Role.PACIENTE);
         }
 
         return usuarioRepository.save(usuario);
@@ -71,6 +68,10 @@ public class AuthServiceImpl implements AuthService {
                 loginRequest.getUsernameOrEmail(), 
                 loginRequest.getUsernameOrEmail())
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        if (!Boolean.TRUE.equals(usuario.getEstaActivo())) {
+            throw new IllegalStateException("La cuenta está inactiva");
+        }
 
         // Autenticar
         authenticationManager.authenticate(
@@ -95,11 +96,37 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Usuario obtenerUsuarioActual() {
+    @Transactional(readOnly = true)
+    public AuthUserResponse obtenerUsuarioActual() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("Token inválido o expirado");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof Usuario usuarioAutenticado) {
+            return toAuthUserResponse(usuarioAutenticado);
+        }
+
+        if (principal instanceof String principalName && "anonymousUser".equalsIgnoreCase(principalName)) {
+            throw new IllegalStateException("Token inválido o expirado");
+        }
+
         String username = authentication.getName();
-        
-        return usuarioRepository.findByUsername(username)
+        Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        return toAuthUserResponse(usuario);
+    }
+
+    private AuthUserResponse toAuthUserResponse(Usuario usuario) {
+        return new AuthUserResponse(
+                usuario.getUsuarioId(),
+                usuario.getUsername(),
+                usuario.getEmail(),
+                usuario.getNombre(),
+                usuario.getApellido(),
+                usuario.getRol(),
+                usuario.getEstaActivo()
+        );
     }
 }

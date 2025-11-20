@@ -4,13 +4,9 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -22,34 +18,25 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "sede_hospital",
-        uniqueConstraints = @UniqueConstraint(name = "uq_sede__hospital_nombre", columnNames = {"hospital_id", "sede"}))
+@Table(name = "especializacion", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_especializacion__nombre", columnNames = "nombre")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SedeHospital {
+public class Especializacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer sedeId;
+    private Integer especializacionId;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "hospital_id", foreignKey = @ForeignKey(name = "fk_sede__hospital"))
-    private Hospital hospital;
-
-    @Column(name = "sede", nullable = false, length = 120)
-    private String sede;
+    @Column(nullable = false, length = 120)
+    private String nombre;
 
     @Column(length = 255)
-    private String ubicacion;
-
-    @Column(length = 40)
-    private String telefono;
-
-    @Column(length = 120)
-    private String email;
+    private String descripcion;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;

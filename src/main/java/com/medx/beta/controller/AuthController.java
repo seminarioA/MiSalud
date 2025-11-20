@@ -1,6 +1,7 @@
 package com.medx.beta.controller;
 
 import com.medx.beta.dto.AuthResponse;
+import com.medx.beta.dto.AuthUserResponse;
 import com.medx.beta.dto.LoginRequest;
 import com.medx.beta.dto.MessageResponse;
 import com.medx.beta.dto.RegistroRequest;
@@ -22,7 +23,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registrarUsuario(@Valid @RequestBody RegistroRequest registroRequest) {
         try {
-            Usuario usuario = authService.registrarUsuario(registroRequest);
+            authService.registrarUsuario(registroRequest);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new MessageResponse("Usuario registrado exitosamente"));
         } catch (IllegalArgumentException e) {
@@ -39,6 +40,9 @@ public class AuthController {
         try {
             AuthResponse authResponse = authService.autenticar(loginRequest);
             return ResponseEntity.ok(authResponse);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Credenciales inválidas"));
@@ -48,7 +52,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> obtenerPerfilActual() {
         try {
-            Usuario usuario = authService.obtenerUsuarioActual();
+            AuthUserResponse usuario = authService.obtenerUsuarioActual();
             return ResponseEntity.ok(usuario);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

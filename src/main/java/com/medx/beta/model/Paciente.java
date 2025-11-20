@@ -1,55 +1,56 @@
 package com.medx.beta.model;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "sede_hospital",
-        uniqueConstraints = @UniqueConstraint(name = "uq_sede__hospital_nombre", columnNames = {"hospital_id", "sede"}))
+@Table(name = "paciente")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SedeHospital {
+public class Paciente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer sedeId;
+    private Integer pacienteId;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "hospital_id", foreignKey = @ForeignKey(name = "fk_sede__hospital"))
-    private Hospital hospital;
+    @Column(nullable = false, length = 75)
+    private String primerNombre;
 
-    @Column(name = "sede", nullable = false, length = 120)
-    private String sede;
+    @Column(length = 75)
+    private String segundoNombre;
 
-    @Column(length = 255)
-    private String ubicacion;
+    @Column(nullable = false, length = 75)
+    private String primerApellido;
 
-    @Column(length = 40)
-    private String telefono;
+    @Column(nullable = false, length = 75)
+    private String segundoApellido;
 
-    @Column(length = 120)
-    private String email;
+    @Column(nullable = false)
+    private LocalDate fechaNacimiento;
+
+    @Column(length = 500)
+    private String domicilio;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean estaActivo = true;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;

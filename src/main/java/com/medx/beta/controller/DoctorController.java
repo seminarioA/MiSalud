@@ -42,7 +42,7 @@ public class DoctorController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('DOCTOR') and #id == authentication.principal.doctorId)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DoctorResponse> actualizar(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
                                              @RequestBody @Valid DoctorRequest doctorRequest) {
         return ResponseEntity.ok(doctorService.update(id, doctorRequest));

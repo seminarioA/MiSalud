@@ -1,8 +1,10 @@
 package com.medx.beta.service.impl;
 
 import com.medx.beta.dto.AuthResponse;
+import com.medx.beta.dto.AuthUserResponse;
 import com.medx.beta.dto.LoginRequest;
 import com.medx.beta.dto.RegistroRequest;
+import com.medx.beta.model.Usuario;
 import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.repository.UsuarioRepository;
 import com.medx.beta.service.JwtService;
@@ -144,9 +146,10 @@ class AuthServiceImplTest {
         context.setAuthentication(new UsernamePasswordAuthenticationToken("usuario01", "pwd"));
         SecurityContextHolder.setContext(context);
 
-        Usuario actual = authService.obtenerUsuarioActual();
+        AuthUserResponse actual = authService.obtenerUsuarioActual();
 
-        assertThat(actual).isSameAs(usuario);
+        assertThat(actual.username()).isEqualTo("usuario01");
+        assertThat(actual.email()).isEqualTo("user@example.com");
         verify(usuarioRepository).findByUsername("usuario01");
     }
 

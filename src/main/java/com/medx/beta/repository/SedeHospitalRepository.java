@@ -1,10 +1,11 @@
 package com.medx.beta.repository;
 
-import com.medx.beta.model.SedeHospital;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.medx.beta.model.SedeHospital;
 
 @Repository
 public interface SedeHospitalRepository extends JpaRepository<SedeHospital, Integer> {

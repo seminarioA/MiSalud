@@ -29,7 +29,7 @@ public class PacienteController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA') or (hasRole('PACIENTE') and #id == authentication.principal.pacienteId)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA', 'PACIENTE')")
     public ResponseEntity<PacienteResponse> getById(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
         return ResponseEntity.ok(pacienteService.getById(id));
     }
@@ -42,7 +42,7 @@ public class PacienteController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA') or (hasRole('PACIENTE') and #id == authentication.principal.pacienteId)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'PACIENTE')")
     public ResponseEntity<PacienteResponse> update(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
                                            @RequestBody @Valid PacienteRequest paciente) {
         return ResponseEntity.ok(pacienteService.update(id, paciente));

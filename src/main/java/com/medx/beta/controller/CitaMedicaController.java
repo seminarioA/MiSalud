@@ -26,7 +26,7 @@ public class CitaMedicaController {
     private final CitaMedicaService citaMedicaService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'ROLE_RECEPCIONISTA')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
     public ResponseEntity<List<CitaMedicaResponse>> getAll() {
         return ResponseEntity.ok(citaMedicaService.getAll());
     }
@@ -38,13 +38,13 @@ public class CitaMedicaController {
     }
 
     @GetMapping("/doctor/{doctorId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA') or (hasRole('DOCTOR') and #doctorId == authentication.principal.doctorId)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
     public ResponseEntity<List<CitaMedicaResponse>> getByDoctor(@PathVariable @Positive(message = "El id debe ser positivo") Integer doctorId) {
         return ResponseEntity.ok(citaMedicaService.getByDoctor(doctorId));
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA') or (hasRole('PACIENTE') and #pacienteId == authentication.principal.pacienteId)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA', 'PACIENTE')")
     public ResponseEntity<List<CitaMedicaResponse>> getByPaciente(@PathVariable @Positive(message = "El id debe ser positivo") Integer pacienteId) {
         return ResponseEntity.ok(citaMedicaService.getByPaciente(pacienteId));
     }

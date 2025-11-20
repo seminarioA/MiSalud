@@ -7,22 +7,26 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "Cita_Medica",
-        uniqueConstraints = @UniqueConstraint(name = "uq_cita__doctor_fecha", columnNames = {"doctor_role_id", "fecha"}))
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "cita_medica",
+        uniqueConstraints = @UniqueConstraint(name = "uq_cita__doctor_fecha", columnNames = {"doctor_id", "fecha"}))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CitaMedica {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer citaId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "doctor_role_id", foreignKey = @ForeignKey(name = "fk_cita__doctor_role"))
-    private RoleDoctor doctor;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id", foreignKey = @ForeignKey(name = "fk_cita__doctor"))
+    private Doctor doctor;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "patient_role_id", foreignKey = @ForeignKey(name = "fk_cita__patient_role"))
-    private RolePatient paciente;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "paciente_id", foreignKey = @ForeignKey(name = "fk_cita__paciente"))
+    private Paciente paciente;
 
     @Column(nullable = false)
     private LocalDateTime fecha;
@@ -31,8 +35,12 @@ public class CitaMedica {
     private Integer duracionMinutos = 30;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 15)
-    private Estado estado = Estado.PROGRAMADA;
+    @Column(nullable = false, length = 20)
+    private TipoCita tipoCita = TipoCita.CONSULTA;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoCita estado = EstadoCita.PROGRAMADA;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal costo = BigDecimal.ZERO;
@@ -43,10 +51,41 @@ public class CitaMedica {
     @Column(name = "dia")
     private LocalDate dia;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
 
-    public enum Estado {
-        PROGRAMADA, EN_CURSO, CANCELADA, COMPLETADA
+    @Column(nullable = false)
+    private LocalDateTime fechaActualizacion;
+
+    @PrePersist
+    void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.fechaCreacion = now;
+        this.fechaActualizacion = now;
+        if (this.fecha != null) {
+            this.dia = this.fecha.toLocalDate();
+        }
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.fechaActualizacion = LocalDateTime.now();
+        if (this.fecha != null) {
+            this.dia = this.fecha.toLocalDate();
+        }
+    }
+
+    public enum TipoCita {
+        CONSULTA,
+        CONTROL,
+        URGENCIA,
+        TELEMEDICINA
+    }
+
+    public enum EstadoCita {
+        PROGRAMADA,
+        EN_CURSO,
+        CANCELADA,
+        COMPLETADA
     }
 }

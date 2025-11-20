@@ -1,14 +1,17 @@
 package com.medx.beta.service.impl;
 
-import com.medx.beta.service.EspecializacionService;
-import com.medx.beta.repository.EspecializacionRepository;
-import com.medx.beta.exception.NotFoundException;
-import com.medx.beta.dto.EspecializacionRequest;
-import com.medx.beta.dto.EspecializacionResponse;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.medx.beta.dto.EspecializacionRequest;
+import com.medx.beta.dto.EspecializacionResponse;
+import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.model.Especializacion;
+import com.medx.beta.repository.EspecializacionRepository;
+import com.medx.beta.service.EspecializacionService;
 
 @Service
 public class EspecializacionServiceImpl implements EspecializacionService {

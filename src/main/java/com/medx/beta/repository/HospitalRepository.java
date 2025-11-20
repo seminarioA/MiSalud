@@ -1,9 +1,11 @@
 package com.medx.beta.repository;
 
-import com.medx.beta.model.Hospital;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.List;
+
+import com.medx.beta.model.Hospital;
 
 @Repository
 public interface HospitalRepository extends JpaRepository<Hospital, Integer> {

@@ -2,8 +2,10 @@ package com.medx.beta.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medx.beta.dto.AuthResponse;
+import com.medx.beta.dto.AuthUserResponse;
 import com.medx.beta.dto.LoginRequest;
 import com.medx.beta.dto.RegistroRequest;
+import com.medx.beta.model.Usuario;
 import com.medx.beta.service.AuthService;
 import com.medx.beta.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,9 +119,8 @@ class AuthControllerTest {
 
     @Test
     void me_ok() throws Exception {
-        Usuario u = new Usuario();
-        u.setUsername("usuario01");
-        when(authService.obtenerUsuarioActual()).thenReturn(u);
+        AuthUserResponse usuario = new AuthUserResponse(1L, "usuario01", "user@example.com", "Juan", "Pérez", Usuario.Role.PACIENTE, true);
+        when(authService.obtenerUsuarioActual()).thenReturn(usuario);
 
         mockMvc.perform(get("/api/auth/me"))
                 .andExpect(status().isOk())
