@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medx.beta.dto.AuthResponse;
 import com.medx.beta.dto.LoginRequest;
 import com.medx.beta.dto.RegistroRequest;
-import com.medx.beta.model.Usuario;
 import com.medx.beta.service.AuthService;
 import com.medx.beta.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,5 @@
 package com.medx.beta.service.impl;
 
-import com.medx.beta.model.Usuario;
 import com.medx.beta.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -3,8 +3,6 @@ package com.medx.beta.service.impl;
 import com.medx.beta.dto.DoctorRequest;
 import com.medx.beta.dto.DoctorResponse;
 import com.medx.beta.exception.NotFoundException;
-import com.medx.beta.model.Doctor;
-import com.medx.beta.model.Especializacion;
 import com.medx.beta.model.HorarioBase;
 import com.medx.beta.model.SedeHospital;
 import com.medx.beta.repository.DoctorRepository;

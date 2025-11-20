@@ -1,61 +1,52 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "Cita_Medica",
-        indexes = { @Index(name = "idx_fecha", columnList = "fecha") })
-
-@Getter
-@Setter
-public class CitaMedica extends AuditableEntity {
+        uniqueConstraints = @UniqueConstraint(name = "uq_cita__doctor_fecha", columnNames = {"doctor_role_id", "fecha"}))
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class CitaMedica {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer citaId;
+    private Long id;
 
-    @NotNull(message = "La fecha de la cita es obligatoria")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "doctor_role_id", foreignKey = @ForeignKey(name = "fk_cita__doctor_role"))
+    private RoleDoctor doctor;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "patient_role_id", foreignKey = @ForeignKey(name = "fk_cita__patient_role"))
+    private RolePatient paciente;
+
     @Column(nullable = false)
     private LocalDateTime fecha;
 
-    @NotNull(message = "El costo es obligatorio")
-    @DecimalMin(value = "0.00", inclusive = true, message = "El costo no puede ser negativo")
-    @Digits(integer = 8, fraction = 2, message = "El costo debe tener hasta 8 enteros y 2 decimales")
+    @Column(nullable = false)
+    private Integer duracionMinutos = 30;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 15)
+    private Estado estado = Estado.PROGRAMADA;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal costo = BigDecimal.ZERO;
 
-    @NotNull(message = "El doctor es obligatorio")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "Doctor_id", nullable = false, foreignKey = @ForeignKey(name = "fk_Cita_Medica_Doctor1"))
-    private Doctor doctor;
+    @Column(columnDefinition = "TEXT")
+    private String observaciones;
 
-    @NotNull(message = "El paciente es obligatorio")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "Paciente_id", nullable = false, foreignKey = @ForeignKey(name = "fk_Cita_Medica_Paciente1"))
-    private Paciente paciente;
+    @Column(name = "dia")
+    private LocalDate dia;
 
-    public enum TipoCita {
-        PRESENCIAL, TELEMEDICINA
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public enum Estado {
+        PROGRAMADA, EN_CURSO, CANCELADA, COMPLETADA
     }
-
-    public enum EstadoCita {
-        Reservada, Confirmada, Cancelada, Completada, No_Asistio, Reprogramada
-    }
-
-    @NotNull(message = "El tipo de cita es obligatorio")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_cita", nullable = false, length = 20)
-    private TipoCita tipoCita;
-
-    @NotNull(message = "El estado de la cita es obligatorio")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false, length = 20)
-    private EstadoCita estado = EstadoCita.Reservada;
-
 }

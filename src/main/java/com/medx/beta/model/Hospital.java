@@ -1,54 +1,38 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "Hospital", uniqueConstraints = {
-    @UniqueConstraint(columnNames = "nombre", name = "uk_hospital_nombre")
+        @UniqueConstraint(name = "uq_hospital__nombre", columnNames = "nombre")
 })
-
-@Getter
-@Setter
-public class Hospital extends AuditableEntity {
+@Getter @Setter @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Hospital {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer hospitalId;
+    private Long id;
 
-    @NotBlank(message = "El nombre del hospital es obligatorio")
-    @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
     @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Size(max = 500, message = "La descripción no puede exceder los 500 caracteres")
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @OneToMany(mappedBy = "hospital", fetch = FetchType.LAZY)
+    @Column(nullable = false)
+    private Boolean estaActivo = true;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SedeHospital> sedes;
-
-    @Override
-    protected void onCreate() {
-        normalize();
-    }
-
-    @Override
-    protected void onUpdate() {
-        normalize();
-    }
-
-    private void normalize() {
-        nombre = trim(nombre);
-        descripcion = trim(descripcion);
-    }
-
-    private String trim(String value) {
-        return value == null ? null : value.trim();
-    }
 }

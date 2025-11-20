@@ -1,7 +1,6 @@
 package com.medx.beta.service.impl;
 
 import com.medx.beta.service.EspecializacionService;
-import com.medx.beta.model.Especializacion;
 import com.medx.beta.repository.EspecializacionRepository;
 import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.dto.EspecializacionRequest;

@@ -3,7 +3,6 @@ package com.medx.beta.service.impl;
 import com.medx.beta.dto.EspecializacionRequest;
 import com.medx.beta.dto.EspecializacionResponse;
 import com.medx.beta.exception.NotFoundException;
-import com.medx.beta.model.Especializacion;
 import com.medx.beta.repository.EspecializacionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

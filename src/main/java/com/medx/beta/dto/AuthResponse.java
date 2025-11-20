@@ -1,7 +1,5 @@
 package com.medx.beta.dto;
 
-import com.medx.beta.model.Usuario;
-
 public record AuthResponse(
         String token,
         String type,

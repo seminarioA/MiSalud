@@ -4,8 +4,6 @@ import com.medx.beta.dto.CitaMedicaRequest;
 import com.medx.beta.dto.CitaMedicaResponse;
 import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.model.CitaMedica;
-import com.medx.beta.model.Doctor;
-import com.medx.beta.model.Paciente;
 import com.medx.beta.repository.CitaMedicaRepository;
 import com.medx.beta.repository.DoctorRepository;
 import com.medx.beta.repository.PacienteRepository;
