@@ -1,36 +1,35 @@
 package com.medx.beta.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Sede_Hospital")
-
-@Getter
-@Setter
+@Table(name = "Sede_Hospital",
+        uniqueConstraints = @UniqueConstraint(name = "uq_sede__hospital_nombre", columnNames = {"hospital_id", "nombre"}))
+@Getter @Setter @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SedeHospital {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer sedeId;
+    private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String sede;
-
-    @Column(length = 255)
-    private String ubicacion;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "Hospital_id", nullable = false,
-            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "fk_Sede_Hospital_Hospital1"))
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "hospital_id", foreignKey = @ForeignKey(name = "fk_sede__hospital"))
     private Hospital hospital;
 
-    @OneToMany(mappedBy = "sedeHospital", fetch = FetchType.LAZY)
+    @Column(nullable = false, length = 100)
+    private String nombre;
 
-    /*@JsonIgnore*/
+    private String ubicacion;
+    private String telefono;
+    private String email;
 
-    private List<Doctor> doctores;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }

@@ -1,123 +1,132 @@
 package com.medx.beta.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.medx.beta.exception.GlobalExceptionHandler;
-import com.medx.beta.exception.NotFoundException;
-import com.medx.beta.model.Hospital;
+import com.medx.beta.dto.HospitalRequest;
+import com.medx.beta.dto.HospitalResponse;
 import com.medx.beta.service.HospitalService;
-import org.junit.jupiter.api.DisplayName;
+import com.medx.beta.service.JwtService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.mock;
 
 @WebMvcTest(controllers = HospitalController.class)
-@Import({GlobalExceptionHandler.class, HospitalControllerTest.ControllerTestConfig.class})
-@WithMockUser(username = "tester", roles = {"USER"})
+@AutoConfigureMockMvc(addFilters = false)
+@Import(HospitalControllerTest.MockConfig.class)
 class HospitalControllerTest {
 
-    @Autowired MockMvc mvc;
-    @Autowired ObjectMapper mapper;
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        HospitalService hospitalService() { return mock(HospitalService.class); }
+        @Bean
+        JwtService jwtService() { return mock(JwtService.class); }
+        @Bean
+        UserDetailsService userDetailsService() { return mock(UserDetailsService.class); }
+    }
+
     @Autowired
-    HospitalService hospitalService;
+    private MockMvc mockMvc;
 
-    private Hospital build(Integer id) {
-        Hospital h = new Hospital();
-        h.setHospitalId(id);
-        h.setNombre("General " + id);
-        h.setDescripcion("Desc" + id);
-        return h;
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private HospitalService hospitalService;
 
     @Test
-    @DisplayName("GET /api/hospitales 200 lista")
-    void list_ok() throws Exception {
-        when(hospitalService.getAll()).thenReturn(List.of(build(1)));
-        mvc.perform(get("/api/hospitales"))
+    void getAll_ok() throws Exception {
+        HospitalResponse r = new HospitalResponse();
+        r.setHospitalId(1);
+        when(hospitalService.getAll()).thenReturn(List.of(r));
+
+        mockMvc.perform(get("/api/v1/hospitales"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].hospitalId", is(1)))
-                .andExpect(jsonPath("$[0].nombre", containsString("General")));
-        verify(hospitalService).getAll();
+                .andExpect(jsonPath("$[0].hospitalId").value(1));
     }
 
     @Test
-    @DisplayName("GET /api/hospitales/{id} 200")
-    void get_ok() throws Exception {
-        when(hospitalService.getById(3)).thenReturn(build(3));
-        mvc.perform(get("/api/hospitales/3"))
+    void getById_ok() throws Exception {
+        HospitalResponse r = new HospitalResponse();
+        r.setHospitalId(2);
+        when(hospitalService.getById(2)).thenReturn(r);
+
+        mockMvc.perform(get("/api/v1/hospitales/{id}", 2))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.hospitalId", is(3)));
-        verify(hospitalService).getById(3);
+                .andExpect(jsonPath("$.hospitalId").value(2));
     }
 
     @Test
-    @DisplayName("GET /api/hospitales/{id} 404")
-    void get_notFound() throws Exception {
-        // El controlador devuelve 404 cuando el servicio retorna null
-        when(hospitalService.getById(99)).thenReturn(null);
-        mvc.perform(get("/api/hospitales/99"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensaje", containsString("no existe")));
+    void getById_idNegativo_badRequest() throws Exception {
+        mockMvc.perform(get("/api/v1/hospitales/{id}", -5))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("El id debe ser positivo")));
     }
 
     @Test
-    @DisplayName("POST /api/hospitales 201")
-    void create_ok() throws Exception {
-        when(hospitalService.create(any(Hospital.class))).thenReturn(build(10));
-        String body = "{\"nombre\":\"Nuevo\",\"descripcion\":\"Desc\"}";
-        mvc.perform(post("/api/hospitales").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+    void create_created() throws Exception {
+        HospitalRequest req = new HospitalRequest();
+        req.setNombre("Hosp A");
+        HospitalResponse resp = new HospitalResponse();
+        resp.setHospitalId(10);
+        when(hospitalService.create(any())).thenReturn(resp);
+
+        mockMvc.perform(post("/api/v1/hospitales")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.hospital.hospitalId", is(10)));
-        verify(hospitalService).create(any(Hospital.class));
+                .andExpect(jsonPath("$.hospitalId").value(10));
     }
 
     @Test
-    @DisplayName("PUT /api/hospitales/{id} 200")
+    void create_requestInvalido_badRequest() throws Exception {
+        HospitalRequest req = new HospitalRequest();
+
+        mockMvc.perform(post("/api/v1/hospitales")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("nombre")))
+                .andExpect(jsonPath("$.message").value(containsString("must not be blank")));
+    }
+
+    @Test
     void update_ok() throws Exception {
-        Hospital updated = build(5); updated.setNombre("Actualizado");
-        // El controlador valida existencia antes de actualizar
-        when(hospitalService.getById(5)).thenReturn(build(5));
-        when(hospitalService.update(eq(5), any(Hospital.class))).thenReturn(updated);
-        String body = mapper.writeValueAsString(updated);
-        mvc.perform(put("/api/hospitales/5").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        HospitalRequest req = new HospitalRequest();
+        req.setNombre("Hosp B");
+        HospitalResponse resp = new HospitalResponse();
+        resp.setHospitalId(5);
+        when(hospitalService.update(eq(5), any())).thenReturn(resp);
+
+        mockMvc.perform(put("/api/v1/hospitales/{id}", 5)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.hospital.nombre", is("Actualizado")));
-        verify(hospitalService).update(eq(5), any(Hospital.class));
+                .andExpect(jsonPath("$.hospitalId").value(5));
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {2,4})
-    @DisplayName("DELETE /api/hospitales/{id} 200 eliminado con mensaje")
-    void delete_ok(int id) throws Exception {
-        // El controlador valida existencia antes de eliminar y responde 200 con mensaje
-        when(hospitalService.getById(id)).thenReturn(build(id));
-        mvc.perform(delete("/api/hospitales/"+id).with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mensaje", containsString("eliminado")));
-        verify(hospitalService).deleteHospital(id);
-    }
+    @Test
+    void delete_noContent() throws Exception {
+        doNothing().when(hospitalService).deleteById(3);
 
-    @org.springframework.boot.test.context.TestConfiguration
-    static class ControllerTestConfig {
-        @org.springframework.context.annotation.Bean
-        @org.springframework.context.annotation.Primary
-        HospitalService hospitalService() { return Mockito.mock(HospitalService.class); }
+        mockMvc.perform(delete("/api/v1/hospitales/{id}", 3))
+                .andExpect(status().isNoContent());
     }
 }

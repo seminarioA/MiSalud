@@ -32,6 +32,13 @@
 set -euf
 [ "${MVNW_VERBOSE-}" != debug ] || set -x
 
+# When a system Maven installation is available we can reuse it instead of
+# forcing the wrapper to download a distribution (which is not possible in the
+# sandboxed CI environment). Set MVNW_FORCE_WRAPPER=true to bypass this shortcut.
+if [ "${MVNW_FORCE_WRAPPER-}" != true ] && command -v mvn >/dev/null 2>&1; then
+  exec mvn "$@"
+fi
+
 # OS specific support.
 native_path() { printf %s\\n "$1"; }
 case "$(uname)" in

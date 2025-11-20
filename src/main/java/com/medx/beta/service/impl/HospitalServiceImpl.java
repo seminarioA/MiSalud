@@ -1,66 +1,72 @@
 package com.medx.beta.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.medx.beta.service.HospitalService;
+import com.medx.beta.dto.HospitalRequest;
+import com.medx.beta.dto.HospitalResponse;
+import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.model.Hospital;
 import com.medx.beta.repository.HospitalRepository;
-import com.medx.beta.exception.NotFoundException;
+import com.medx.beta.service.HospitalService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class HospitalServiceImpl implements HospitalService {
-    
-    @Autowired
-    private HospitalRepository hospitalRepository;
+
+    private final HospitalRepository hospitalRepository;
 
     @Override
-    public List<Hospital> getAll() {
-        return hospitalRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<HospitalResponse> getAll() {
+        return hospitalRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Hospital getById(Integer id) {
-        return hospitalRepository.findById(id)
+    @Transactional(readOnly = true)
+    public HospitalResponse getById(Integer id) {
+        Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
+        return toResponse(hospital);
     }
 
     @Override
-    public Hospital create(Hospital hospital) {
-        return hospitalRepository.save(hospital);
+    public HospitalResponse create(HospitalRequest hospitalRequest) {
+        Hospital hospital = new Hospital();
+        hospital.setNombre(hospitalRequest.getNombre());
+        hospital.setDescripcion(hospitalRequest.getDescripcion());
+        Hospital saved = hospitalRepository.save(hospital);
+        return toResponse(saved);
     }
 
     @Override
-    public Hospital update(Integer id, Hospital hospital) { 
+    public HospitalResponse update(Integer id, HospitalRequest hospitalRequest) {
         Hospital existente = hospitalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
-        existente.setNombre(hospital.getNombre());
-        existente.setDescripcion(hospital.getDescripcion());
-        // No actualizamos sedes directamente aqui para evitar desincronizacion
-        return hospitalRepository.save(existente);
+        existente.setNombre(hospitalRequest.getNombre());
+        existente.setDescripcion(hospitalRequest.getDescripcion());
+        Hospital saved = hospitalRepository.save(existente);
+        return toResponse(saved);
     }
 
     @Override
-    public void deleteHospital(Integer id) {
-        Hospital existente = hospitalRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Hospital no encontrado con id: " + id));
-        hospitalRepository.delete(existente);
+    public void deleteById(Integer id) {
+        hospitalRepository.deleteById(id);
     }
-    
-    @Override
-    public List<Hospital> findHospitalesByNombre(String nombre) {
-        return hospitalRepository.findByNombreContainingIgnoreCase(nombre);
-    }
-    
-    @Override
-    public boolean existsByNombre(String nombre) {
-        return hospitalRepository.existsByNombreIgnoreCase(nombre);
-    }
-    
-    @Override
-    public boolean existsByNombreAndNotId(String nombre, Integer hospitalId) {
-        return hospitalRepository.existsByNombreIgnoreCaseAndHospitalIdNot(nombre, hospitalId);
+
+    private HospitalResponse toResponse(Hospital hospital) {
+        HospitalResponse dto = new HospitalResponse();
+        dto.setHospitalId(hospital.getHospitalId());
+        dto.setNombre(hospital.getNombre());
+        dto.setDescripcion(hospital.getDescripcion());
+        dto.setFechaCreacion(hospital.getFechaCreacion());
+        dto.setFechaActualizacion(hospital.getFechaActualizacion());
+        return dto;
     }
 }
