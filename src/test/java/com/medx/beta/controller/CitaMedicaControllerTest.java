@@ -119,8 +119,8 @@ class CitaMedicaControllerTest {
     void create_created() throws Exception {
         CitaMedicaRequest req = new CitaMedicaRequest();
         req.setFecha(LocalDateTime.now().plusDays(1));
-        req.setTipoCita(CitaMedica.TipoCita.PRESENCIAL);
-        req.setEstado(CitaMedica.EstadoCita.Reservada);
+        req.setTipoCita(CitaMedica.TipoCita.CONSULTA);
+        req.setEstado(CitaMedica.EstadoCita.PROGRAMADA);
         req.setCosto(new BigDecimal("50.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
@@ -139,8 +139,8 @@ class CitaMedicaControllerTest {
     void update_ok() throws Exception {
         CitaMedicaRequest req = new CitaMedicaRequest();
         req.setFecha(LocalDateTime.now().plusDays(2));
-        req.setTipoCita(CitaMedica.TipoCita.TELEMEDICINA);
-        req.setEstado(CitaMedica.EstadoCita.Confirmada);
+        req.setTipoCita(CitaMedica.TipoCita.CONSULTA);
+        req.setEstado(CitaMedica.EstadoCita.PROGRAMADA);
         req.setCosto(new BigDecimal("100.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);

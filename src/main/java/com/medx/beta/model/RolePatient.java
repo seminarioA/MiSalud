@@ -3,8 +3,6 @@ package com.medx.beta.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
 @Table(name = "Role_Patient")
 @Getter
@@ -28,7 +26,4 @@ public class RolePatient {
 
     @Column(columnDefinition = "TEXT")
     private String alergias;
-
-    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CitaMedica> citas;
 }

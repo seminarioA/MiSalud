@@ -30,6 +30,8 @@
 		<java.version>21</java.version>
 		<mockito.version>5.17.0</mockito.version>
 		<bytebuddy.version>1.17.7</bytebuddy.version>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 	</properties>
 	<dependencies>
 		<dependency>

@@ -4,6 +4,8 @@ import com.medx.beta.dto.CitaMedicaRequest;
 import com.medx.beta.dto.CitaMedicaResponse;
 import com.medx.beta.exception.NotFoundException;
 import com.medx.beta.model.CitaMedica;
+import com.medx.beta.model.Doctor;
+import com.medx.beta.model.Paciente;
 import com.medx.beta.repository.CitaMedicaRepository;
 import com.medx.beta.repository.DoctorRepository;
 import com.medx.beta.repository.PacienteRepository;
@@ -49,8 +51,8 @@ class CitaMedicaServiceImplTest {
         cita.setDoctor(doctor);
         cita.setPaciente(paciente);
         cita.setFecha(fecha);
-        cita.setTipoCita(CitaMedica.TipoCita.PRESENCIAL);
-        cita.setEstado(CitaMedica.EstadoCita.Confirmada);
+        cita.setTipoCita(CitaMedica.TipoCita.CONSULTA);
+        cita.setEstado(CitaMedica.EstadoCita.PROGRAMADA);
         cita.setCosto(new BigDecimal("20.00"));
         cita.setFechaCreacion(fecha.minusDays(1));
         cita.setFechaActualizacion(fecha);
@@ -63,8 +65,8 @@ class CitaMedicaServiceImplTest {
         assertThat(dto.getCitaId()).isEqualTo(1);
         assertThat(dto.getDoctorId()).isEqualTo(1);
         assertThat(dto.getPacienteId()).isEqualTo(2);
-        assertThat(dto.getTipoCita()).isEqualTo(CitaMedica.TipoCita.PRESENCIAL);
-        assertThat(dto.getEstado()).isEqualTo(CitaMedica.EstadoCita.Confirmada);
+        assertThat(dto.getTipoCita()).isEqualTo(CitaMedica.TipoCita.CONSULTA);
+        assertThat(dto.getEstado()).isEqualTo(CitaMedica.EstadoCita.PROGRAMADA);
         assertThat(dto.getCosto()).isEqualByComparingTo("20.00");
         assertThat(dto.getFechaCreacion()).isEqualTo(fecha.minusDays(1));
         assertThat(dto.getFechaActualizacion()).isEqualTo(fecha);
@@ -96,8 +98,8 @@ class CitaMedicaServiceImplTest {
         req.setCosto(new BigDecimal("10.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
-        req.setTipoCita(CitaMedica.TipoCita.TELEMEDICINA);
-        req.setEstado(CitaMedica.EstadoCita.Reservada);
+        req.setTipoCita(CitaMedica.TipoCita.CONSULTA);
+        req.setEstado(CitaMedica.EstadoCita.PROGRAMADA);
         Doctor doctor = new Doctor();
         doctor.setDoctorId(1);
         Paciente paciente = new Paciente();
@@ -165,8 +167,8 @@ class CitaMedicaServiceImplTest {
         req.setCosto(new BigDecimal("15.00"));
         req.setDoctorId(1);
         req.setPacienteId(2);
-        req.setTipoCita(CitaMedica.TipoCita.PRESENCIAL);
-        req.setEstado(CitaMedica.EstadoCita.Confirmada);
+        req.setTipoCita(CitaMedica.TipoCita.CONSULTA);
+        req.setEstado(CitaMedica.EstadoCita.PROGRAMADA);
 
         CitaMedicaResponse out = service.update(5, req);
 

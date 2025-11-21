@@ -25,7 +25,7 @@ public class PersonRole {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "role_code", foreignKey = @ForeignKey(name = "fk_person_role__role"))
-    private RoleType roleType;
+    private SysRole sysRole;
 
     @ManyToOne
     @JoinColumn(name = "sede_id", foreignKey = @ForeignKey(name = "fk_person_role__sede"))
@@ -38,12 +38,25 @@ public class PersonRole {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
+    @Builder.Default
     private Status status = Status.ACTIVE;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     public enum Status {
         ACTIVE, INACTIVE, SUSPENDED

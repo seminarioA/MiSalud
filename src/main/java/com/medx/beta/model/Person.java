@@ -44,6 +44,7 @@ public class Person {
     private String email;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean estaActivo = true;
 
     @Column(nullable = false, updatable = false)
@@ -52,8 +53,10 @@ public class Person {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PersonRole> roles;
+    @Builder.Default
+    private List<PersonRole> roles = List.of();
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PersonPhoto> fotos;
+    @Builder.Default
+    private List<PersonPhoto> fotos = List.of();
 }

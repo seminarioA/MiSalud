@@ -32,17 +32,21 @@ public class CitaMedica {
     private LocalDateTime fecha;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer duracionMinutos = 30;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private TipoCita tipoCita = TipoCita.CONSULTA;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private EstadoCita estado = EstadoCita.PROGRAMADA;
 
     @Column(nullable = false, precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal costo = BigDecimal.ZERO;
 
     @Column(columnDefinition = "TEXT")
@@ -52,10 +56,12 @@ public class CitaMedica {
     private LocalDate dia;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
+    @Builder.Default
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
 
     @Column(nullable = false)
-    private LocalDateTime fechaActualizacion;
+    @Builder.Default
+    private LocalDateTime fechaActualizacion = LocalDateTime.now();
 
     @PrePersist
     void onCreate() {
