@@ -3,55 +3,50 @@ package com.medx.beta.controller;
 import com.medx.beta.dto.DoctorRequest;
 import com.medx.beta.dto.DoctorResponse;
 import com.medx.beta.service.DoctorService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/doctores")
 @RequiredArgsConstructor
-@Validated
 public class DoctorController {
 
     private final DoctorService doctorService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
+    @PreAuthorize("hasAnyRole('DOCTOR','PACIENTE','RECEPCIONISTA','OPERACIONES')")
     public ResponseEntity<List<DoctorResponse>> listar() {
-        return ResponseEntity.ok(doctorService.getAll());
+        return ResponseEntity.ok(doctorService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR', 'RECEPCIONISTA')")
-    public ResponseEntity<DoctorResponse> obtener(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
-        return ResponseEntity.ok(doctorService.getById(id));
+    @PreAuthorize("hasAnyRole('DOCTOR','PACIENTE','RECEPCIONISTA','OPERACIONES')")
+    public ResponseEntity<DoctorResponse> obtener(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DoctorResponse> crear(@RequestBody @Valid DoctorRequest doctorRequest) {
-        DoctorResponse creado = doctorService.create(doctorRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<DoctorResponse> crear(@Valid @RequestBody DoctorRequest request) {
+        return ResponseEntity.ok(doctorService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DoctorResponse> actualizar(@PathVariable @Positive(message = "El id debe ser positivo") Integer id,
-                                             @RequestBody @Valid DoctorRequest doctorRequest) {
-        return ResponseEntity.ok(doctorService.update(id, doctorRequest));
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<DoctorResponse> actualizar(@PathVariable Long id,
+                                                     @Valid @RequestBody DoctorRequest request) {
+        return ResponseEntity.ok(doctorService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> eliminar(@PathVariable @Positive(message = "El id debe ser positivo") Integer id) {
-        doctorService.deleteById(id);
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        doctorService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

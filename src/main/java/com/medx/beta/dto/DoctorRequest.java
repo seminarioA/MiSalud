@@ -1,31 +1,15 @@
 package com.medx.beta.dto;
 
-import lombok.Data;
-import jakarta.validation.constraints.*;
+import com.medx.beta.model.Doctor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 
-@Data
-public class DoctorRequest {
-    @NotBlank(message = "El primer nombre es obligatorio")
-    @Size(max = 75)
-    private String primerNombre;
+public record DoctorRequest(
+        @Valid @NotNull PersonaRequest persona,
+        @Size(max = 20) String numeroColegiatura,
+        @NotNull List<Long> especialidadIds
+) {}
 
-    @Size(max = 75)
-    private String segundoNombre;
-
-    @NotBlank(message = "El primer apellido es obligatorio")
-    @Size(max = 75)
-    private String primerApellido;
-
-    @NotBlank(message = "El segundo apellido es obligatorio")
-    @Size(max = 75)
-    private String segundoApellido;
-
-    @NotNull(message = "La sede es obligatoria")
-    private Integer sedeId;
-
-    @NotNull(message = "El turno es obligatorio")
-    private Integer turnoId;
-
-    private List<Integer> especializacionIds;
-}

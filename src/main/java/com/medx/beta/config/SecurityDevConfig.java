@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -33,10 +34,13 @@ public class SecurityDevConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/hospitales/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/especializaciones/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/especialidades/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/consultorios/**").permitAll()
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/v1/admin/**")).hasRole("OPERACIONES")
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/v1/doctores/**")).hasAnyRole("DOCTOR", "OPERACIONES")
+                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/v1/pacientes/**")).hasAnyRole("PACIENTE", "RECEPCIONISTA", "OPERACIONES")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

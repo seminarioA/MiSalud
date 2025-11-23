@@ -1,13 +1,7 @@
 package com.medx.beta.dto;
 
-import com.medx.beta.model.Usuario;
+import com.medx.beta.model.UsuarioSistema;
 
-public record AuthUserResponse(
-        Long usuarioId,
-        String username,
-        String email,
-        String nombre,
-        String apellido,
-        Usuario.Role rol,
-        Boolean estaActivo
-) {}
+public record AuthUserResponse(Long id, String email, UsuarioSistema.Rol rol) {
+}
+

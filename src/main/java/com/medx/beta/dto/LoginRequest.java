@@ -1,14 +1,10 @@
 package com.medx.beta.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
-@Data
-public class LoginRequest {
-    
-    @NotBlank(message = "El nombre de usuario o email es obligatorio")
-    private String usernameOrEmail;
+public record LoginRequest(
+        @Email @NotBlank String email,
+        @NotBlank String password
+) {}
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    private String password;
-}

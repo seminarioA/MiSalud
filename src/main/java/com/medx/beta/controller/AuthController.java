@@ -3,60 +3,60 @@ package com.medx.beta.controller;
 import com.medx.beta.dto.AuthResponse;
 import com.medx.beta.dto.AuthUserResponse;
 import com.medx.beta.dto.LoginRequest;
-import com.medx.beta.dto.MessageResponse;
-import com.medx.beta.dto.RegistroRequest;
+import com.medx.beta.dto.UsuarioSistemaRequest;
+import com.medx.beta.dto.UsuarioSistemaResponse;
 import com.medx.beta.service.AuthService;
+import com.medx.beta.service.UsuarioSistemaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthController {
 
     private final AuthService authService;
-
-    @PostMapping("/register")
-    public ResponseEntity<?> registrarUsuario(@Valid @RequestBody RegistroRequest registroRequest) {
-        try {
-            authService.registrarUsuario(registroRequest);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new MessageResponse("Usuario registrado exitosamente"));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse("Error interno del servidor"));
-        }
-    }
+    private final UsuarioSistemaService usuarioSistemaService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> autenticar(@Valid @RequestBody LoginRequest loginRequest) {
-        try {
-            AuthResponse authResponse = authService.autenticar(loginRequest);
-            return ResponseEntity.ok(authResponse);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new MessageResponse(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new MessageResponse("Credenciales inválidas"));
-        }
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.autenticar(request));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> obtenerPerfilActual() {
-        try {
-            AuthUserResponse usuario = authService.obtenerUsuarioActual();
-            return ResponseEntity.ok(usuario);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new MessageResponse("Token inválido o expirado"));
-        }
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AuthUserResponse> me() {
+        return ResponseEntity.ok(authService.usuarioActual());
+    }
+
+    @GetMapping("/usuarios")
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<List<UsuarioSistemaResponse>> usuarios() {
+        return ResponseEntity.ok(usuarioSistemaService.findAll());
+    }
+
+    @PostMapping("/usuarios")
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<UsuarioSistemaResponse> crear(@Valid @RequestBody UsuarioSistemaRequest request) {
+        return ResponseEntity.ok(usuarioSistemaService.create(request));
+    }
+
+    @PutMapping("/usuarios/{id}")
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<UsuarioSistemaResponse> actualizar(@PathVariable Long id,
+                                                             @Valid @RequestBody UsuarioSistemaRequest request) {
+        return ResponseEntity.ok(usuarioSistemaService.update(id, request));
+    }
+
+    @DeleteMapping("/usuarios/{id}")
+    @PreAuthorize("hasRole('OPERACIONES')")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        usuarioSistemaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
