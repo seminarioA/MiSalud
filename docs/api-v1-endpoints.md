@@ -1,34 +1,81 @@
 # Plataforma MiSalud · API REST v1 (Referencia para Front-End)
 
-> Documentación preparada para equipos front-end. Cada operación expone payloads reales de entrada/salida, roles permitidos, parámetros, códigos HTTP y casos borde. Todas las rutas están versionadas bajo `/api/v1`.
+> Documento técnico detallado orientado a ingenieros front-end. No se asume conocimiento del back-end; cada endpoint incluye: ruta, método, cabeceras necesarias (ej. JWT), permisos/roles, cuerpo de request con validaciones, ejemplos de request/response (incluyendo PUT/DELETE), códigos HTTP esperados, errores comunes y casos borde.
+
+Todas las rutas están versionadas bajo `/api/v1`.
 
 ---
 
-## 0. Convenciones rápidas
+## Convenciones globales
 
-| Tema | Detalle |
-| --- | --- |
-| Autenticación | JWT Bearer en `Authorization: Bearer <token>`. Solo `/auth/login` es público. |
-| Roles | `PACIENTE`, `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES`. |
-| Formatos | JSON UTF-8. Fecha: `yyyy-MM-dd`. Hora: `HH:mm:ss`. Timestamp: `yyyy-MM-dd'T'HH:mm:ss`. |
-| Errores | Estructura estándar: `{ "status": 400, "error": "Bad Request", "message": "Detalle", "timestamp": "2025-11-22T18:10:04" }`. |
-| Seguridad | `SecurityDevConfig` + `JwtAuthenticationFilter` + `@PreAuthorize`. |
-| Buenas prácticas | Cachear catálogos, exponer mensajes backend, limpiar sesión ante `401`, mostrar CTA ante `404`. |
+- Content-Type: application/json; charset=UTF-8
+- Fecha: `YYYY-MM-DD` (ISO date)
+- Hora: `HH:mm:ss` (24h)
+- Timestamp: `YYYY-MM-DD'T'HH:mm:ss` (ISO datetime)
+- Autenticación: header `Authorization: Bearer <token>` para rutas protegidas.
+- Roles (constantes backend): `PACIENTE`, `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES`.
+- Formato de errores estándar (JSON):
+
+  {
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Detalle legible del error",
+    "timestamp": "2025-11-22T18:10:04"
+  }
+
+- Códigos HTTP principales:
+  - 200 OK: request exitoso (GET/PUT)
+  - 201 Created: recurso creado (POST)
+  - 204 No Content: eliminación correcta (DELETE)
+  - 400 Bad Request: validación fallida
+  - 401 Unauthorized: token ausente/ inválido
+  - 403 Forbidden: token válido pero rol insuficiente
+  - 404 Not Found: recurso no existe
+  - 409 Conflict: entidad duplicada (email, número documento, etc.)
+  - 500 Internal Server Error: fallo inesperado
 
 ---
 
-## 1. Autenticación (`/auth`)
+## JWT: cómo funciona en esta API
 
-### POST `/auth/login`
-- **Roles:** Público
-- **Request**
+- Obtener token: POST `/api/v1/auth/login` (email + password) devuelve `token` y `user`.
+- El token es JWT firmado HMAC con la clave en `application.properties` (`jwt.secret`).
+- Claims incluidos:
+  - `sub` (subject): email del usuario.
+  - `iat`, `exp` estándar.
+  - claim custom `rol`: string con el rol principal del usuario (ej. `PACIENTE`).
+- Expiración por defecto: 86400000 ms (24 horas) salvo que se configure en propiedades.
+- En cada petición protegida enviad: `Authorization: Bearer <token>`.
+- El filtro `JwtAuthenticationFilter` valida token, extrae `rol` de los claims y crea autoridad `ROLE_{ROL}` en el contexto de seguridad.
+
+Casos a tener en cuenta:
+- Si el token es válido pero expirado -> 401.
+- Si el token carece del claim `rol` -> el filtro usará las autoridades del UserDetails (si las tiene).
+
+---
+
+# Endpoints (extenso, con ejemplos concretos)
+
+NOTA: en cada sección incluyo ejemplos explícitos para POST, PUT y DELETE (cuando aplicable), además de casos borde y respuestas de error.
+
+---
+
+## 1) Autenticación y usuarios del sistema
+
+### 1.1 POST /api/v1/auth/login
+- Propósito: obtener JWT
+- Roles: público (sin token)
+- Headers: Content-Type: application/json
+- Request body (validaciones: email válido, password no vacío):
+
 ```json
 {
   "email": "usuario@misalud.com",
   "password": "Secreto123"
 }
 ```
-- **Response 200**
+
+- Response 200 (ejemplo):
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -39,11 +86,19 @@
   }
 }
 ```
-- **Errores:** `401` credenciales inválidas, `423` cuenta bloqueada.
 
-### GET `/auth/me`
-- **Roles:** Cualquiera autenticado
-- **Response 200**
+- Errores:
+  - 401: credenciales inválidas -> {status:401, error:"Unauthorized", message:"Credenciales inválidas"}
+  - 400: payload inválido (email faltante / password vacía)
+
+---
+
+### 1.2 GET /api/v1/auth/me
+- Propósito: obtener datos del usuario autenticado
+- Roles: cualquier usuario autenticado
+- Headers: Authorization: Bearer <token>
+
+Response 200 (ejemplo):
 ```json
 {
   "id": 12,
@@ -51,104 +106,104 @@
   "rol": "DOCTOR"
 }
 ```
-- **Errores:** `401` token inválido/expirado.
 
-### CRUD de usuarios del sistema (`ROL OPERACIONES`)
+- Errores: 401 token inválido/expirado
 
-#### GET `/auth/usuarios`
-```json
-[
-  {
-    "id": 44,
-    "email": "lucia.flores@misalud.com",
-    "rol": "RECEPCIONISTA"
-  }
-]
-```
+---
 
-#### POST `/auth/usuarios`
-- **Request**
+### 1.3 CRUD Usuarios del sistema
+- Rutas: `/api/v1/auth/usuarios` (GET, POST), `/api/v1/auth/usuarios/{id}` (PUT, DELETE)
+- Reglas clave:
+  - GET `/usuarios` requiere rol `OPERACIONES`.
+  - POST `/usuarios` ahora es público: cualquiera puede registrarse. Importante: si el request intenta crear un usuario con rol `OPERACIONES`, el backend solo permitirá dicha asignación si quien hace la petición tiene rol `OPERACIONES` (ver comportamiento en service). Si no está autenticado o no tiene ese rol, el nuevo usuario será creado con rol `PACIENTE` por defecto.
+  - PUT y DELETE requieren rol `OPERACIONES`.
+
+Campos de `UsuarioSistemaRequest` (request):
 ```json
 {
   "persona": {
     "primerNombre": "Lucía",
+    "segundoNombre": "Opcional",
     "primerApellido": "Flores",
-    "tipoDocumento": "DNI",
+    "segundoApellido": "Opcional",
+    "tipoDocumento": "DNI",            // ENUM: DNI, CE, PASAPORTE, PTP, RUC
     "numeroDocumento": "87654321",
     "fechaNacimiento": "1994-08-21",
-    "genero": "FEMENINO"
+    "genero": "FEMENINO",            // ENUM: MASCULINO, FEMENINO, OTRO
+    "numeroTelefono": "999888777",
+    "urlFotoPerfil": "https://..."
   },
   "email": "lucia.flores@misalud.com",
   "password": "Temporal123",
-  "rol": "RECEPCIONISTA"
+  "rol": "RECEPCIONISTA"           // OPCIONAL para llamados públicos: se ignorará y se asignará PACIENTE
 }
 ```
-- **Response 201**
+
+- POST /api/v1/auth/usuarios (registro público)
+  - Si el caller NO está autenticado o NO tiene ROLE_OPERACIONES:
+    - El backend creará el usuario con `rol` = `PACIENTE` independientemente de lo que envíe el request.
+  - Si el caller tiene ROLE_OPERACIONES, podrá asignar el rol especificado en el request.
+
+- Response 201 (ejemplo cuando crea correctamente):
 ```json
 {
   "id": 44,
   "persona": {
     "id": 91,
     "primerNombre": "Lucía",
+    "segundoNombre": "Opcional",
     "primerApellido": "Flores",
+    "segundoApellido": "Opcional",
     "tipoDocumento": "DNI",
     "numeroDocumento": "87654321",
     "fechaNacimiento": "1994-08-21",
-    "genero": "FEMENINO"
+    "genero": "FEMENINO",
+    "numeroTelefono": "999888777",
+    "urlFotoPerfil": "https://..."
   },
   "email": "lucia.flores@misalud.com",
-  "rol": "RECEPCIONISTA"
+  "rol": "PACIENTE"
 }
 ```
-- **Errores:** `400` password corta, `409` email duplicado.
 
-#### PUT `/auth/usuarios/{id}`
-```json
-{
-  "persona": {
-    "primerNombre": "Lucía",
-    "primerApellido": "Flores",
-    "tipoDocumento": "DNI",
-    "numeroDocumento": "87654321",
-    "fechaNacimiento": "1994-08-21",
-    "genero": "FEMENINO"
-  },
-  "email": "lucia.flores@misalud.com",
-  "password": "NuevaClave456",
-  "rol": "OPERACIONES"
-}
-```
-Response 200: igual al POST con los nuevos valores. `404` id inexistente, `409` email usado por otro usuario.
+- Errores frecuentes:
+  - 400: validación de campos (email inválido, password vacía, faltan campos requeridos en persona)
+  - 409: email ya registrado
 
-#### DELETE `/auth/usuarios/{id}`
-- **Response 204** sin cuerpo.
-- **Caso borde:** si el usuario estaba logueado, cualquier request posterior devolverá `401`.
+- PUT /api/v1/auth/usuarios/{id} (solo para ROLE_OPERACIONES)
+  - Request: igual que POST
+  - Response 200: objeto actualizado
+  - Errores: 404 id no existe, 403 si caller sin ROLE_OPERACIONES intenta acceder, 409 email duplicado
+
+- DELETE /api/v1/auth/usuarios/{id}
+  - Response 204 No Content
+  - Errores: 404, 403
 
 ---
 
-## 2. Personas (`/personas`)
+## 2) Personas
 
-### GET `/personas`
-- **Roles:** `RECEPCIONISTA`, `OPERACIONES`
+Rutas: `/api/v1/personas` y `/api/v1/personas/{id}`
+Roles principales: `RECEPCIONISTA`, `OPERACIONES` (GET lista), otros endpoints protegidos según controlador.
+
+- Ejemplo POST `/api/v1/personas` (crear persona aislada):
+Request:
 ```json
-[
-  {
-    "id": 105,
-    "primerNombre": "Marcos",
-    "segundoNombre": "Andrés",
-    "primerApellido": "Soto",
-    "segundoApellido": "Pérez",
-    "tipoDocumento": "CE",
-    "numeroDocumento": "CE998877",
-    "fechaNacimiento": "1988-02-14",
-    "genero": "MASCULINO",
-    "numeroTelefono": "998887766",
-    "urlFotoPerfil": "https://cdn.misalud.com/perfiles/marcos.jpg"
-  }
-]
+{
+  "primerNombre": "Marcos",
+  "segundoNombre": "Andrés",
+  "primerApellido": "Soto",
+  "segundoApellido": "Pérez",
+  "tipoDocumento": "CE",
+  "numeroDocumento": "CE998877",
+  "fechaNacimiento": "1988-02-14",
+  "genero": "MASCULINO",
+  "numeroTelefono": "998887766",
+  "urlFotoPerfil": "https://cdn.misalud.com/perfiles/marcos.jpg"
+}
 ```
 
-### GET `/personas/{id}`
+Response 201:
 ```json
 {
   "id": 105,
@@ -164,150 +219,52 @@ Response 200: igual al POST con los nuevos valores. `404` id inexistente, `409` 
   "urlFotoPerfil": "https://cdn.misalud.com/perfiles/marcos.jpg"
 }
 ```
-Errores: `404` id inexistente.
 
-### POST `/personas`
-```json
-{
-  "primerNombre": "Marcos",
-  "segundoNombre": "Andrés",
-  "primerApellido": "Soto",
-  "segundoApellido": "Pérez",
-  "tipoDocumento": "CE",
-  "numeroDocumento": "CE998877",
-  "fechaNacimiento": "1988-02-14",
-  "genero": "MASCULINO",
-  "numeroTelefono": "998887766",
-  "urlFotoPerfil": "https://cdn.misalud.com/perfiles/marcos.jpg"
-}
-```
-Response 201: mismo objeto + `id`. Errores: `400` documento inválido, `409` duplicado.
+Errors:
+- 400: fechaNacimiento en futuro
+- 409: numeroDocumento duplicado
+- 403: si recurso restringido
 
-### PUT `/personas/{id}`
-```json
-{
-  "primerNombre": "Marcos",
-  "segundoNombre": "A.",
-  "primerApellido": "Soto",
-  "segundoApellido": "Pérez",
-  "tipoDocumento": "CE",
-  "numeroDocumento": "CE998877",
-  "fechaNacimiento": "1988-02-14",
-  "genero": "MASCULINO",
-  "numeroTelefono": "900111222",
-  "urlFotoPerfil": null
-}
-```
-Response 200: registro actualizado. `422` si fecha futura.
-
-### DELETE `/personas/{id}`
-`204 No Content`. `409` si la persona está enlazada a un paciente/doctor.
+PUT and DELETE examples are straightforward: include full persona object for PUT; DELETE returns 204.
 
 ---
 
-## 3. Pacientes (`/pacientes`)
+## 3) Pacientes
 
-### GET `/pacientes`
-- **Roles:** `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES`
+Rutas: `/api/v1/pacientes`, `/api/v1/pacientes/{id}`
+Roles:
+- GET list: PACIENTE (su propio recurso) | RECEPCIONISTA | OPERACIONES
+- POST crear paciente: RECEPCIONISTA | OPERACIONES
+- PUT/DELETE: OPERACIONES
+
+Request POST `/api/v1/pacientes` (crear paciente vinculando persona):
 ```json
-[
-  {
-    "id": 22,
-    "persona": {
-      "id": 205,
-      "primerNombre": "Ana",
-      "segundoNombre": "Lucía",
-      "primerApellido": "Rojas",
-      "segundoApellido": "García",
-      "tipoDocumento": "DNI",
-      "numeroDocumento": "12345678",
-      "fechaNacimiento": "1992-04-15",
-      "genero": "FEMENINO",
-      "numeroTelefono": "987654321"
-    },
-    "tipoSeguro": "ESSALUD"
-  }
-]
+{
+  "persona": { /* mismo esquema que persona */ },
+  "tipoSeguro": "ESSALUD"  // ENUM: SIS, ESSALUD, EPS, PARTICULAR, SOAT, SCTR, OTRO
+}
 ```
 
-### GET `/pacientes/{id}`
+Response 201 (ejemplo):
 ```json
 {
   "id": 22,
-  "persona": {
-    "id": 205,
-    "primerNombre": "Ana",
-    "segundoNombre": "Lucía",
-    "primerApellido": "Rojas",
-    "segundoApellido": "García",
-    "tipoDocumento": "DNI",
-    "numeroDocumento": "12345678",
-    "fechaNacimiento": "1992-04-15",
-    "genero": "FEMENINO",
-    "numeroTelefono": "987654321"
-  },
+  "persona": { "id": 205, /* ...datos completos... */ },
   "tipoSeguro": "ESSALUD"
 }
 ```
 
-### POST `/pacientes`
-```json
-{
-  "persona": {
-    "primerNombre": "Ana",
-    "segundoNombre": "Lucía",
-    "primerApellido": "Rojas",
-    "segundoApellido": "García",
-    "tipoDocumento": "DNI",
-    "numeroDocumento": "12345678",
-    "fechaNacimiento": "1992-04-15",
-    "genero": "FEMENINO",
-    "numeroTelefono": "987654321"
-  },
-  "tipoSeguro": "ESSALUD"
-}
-```
-Response 201: paciente con `id`. `409` si documento ya existe.
+PUT `/api/v1/pacientes/{id}` ejemplo (actualizar): enviar la estructura completa; response 200 con objeto actualizado.
 
-### PUT `/pacientes/{id}`
-```json
-{
-  "persona": {
-    "primerNombre": "Ana",
-    "segundoNombre": "María",
-    "primerApellido": "Rojas",
-    "segundoApellido": "García",
-    "tipoDocumento": "DNI",
-    "numeroDocumento": "12345678",
-    "fechaNacimiento": "1992-04-15",
-    "genero": "FEMENINO",
-    "numeroTelefono": "987000111"
-  },
-  "tipoSeguro": "EPS"
-}
-```
-Response 200: paciente actualizado.
-
-### DELETE `/pacientes/{id}`
-`204`. `409` si tiene citas activas.
+DELETE `/api/v1/pacientes/{id}`: 204; 409 si tiene citas activas.
 
 ---
 
-## 4. Responsables (`/pacientes/{pacienteId}/responsables`)
+## 4) Responsables de pacientes
 
-### GET
-```json
-[
-  {
-    "id": 11,
-    "pacienteId": 22,
-    "personaResponsableId": 41,
-    "relacion": "Madre"
-  }
-]
-```
-
-### POST
+Rutas: `/api/v1/pacientes/{pacienteId}/responsables`
+- POST ejemplo (add responsable):
+Request:
 ```json
 {
   "pacienteId": 22,
@@ -315,480 +272,290 @@ Response 200: paciente actualizado.
   "relacion": "Madre"
 }
 ```
-Response 201: responsable creado.
 
-### PUT `/pacientes/{pacienteId}/responsables/{id}`
+Response 201:
 ```json
 {
+  "id": 11,
   "pacienteId": 22,
   "personaResponsableId": 41,
-  "relacion": "Hermana"
+  "relacion": "Madre"
 }
 ```
-Response 200: responsable actualizado. `404` si id inválido.
 
-### DELETE
-`204`. `409` si se intenta eliminar el único contacto permitido.
+PUT `/.../{id}` ejemplo (actualizar relacion): enviar el mismo payload con nueva relacion; response 200
+DELETE -> 204, 409 si es el único contacto permitido.
 
 ---
 
-## 5. Doctores (`/doctores`)
+## 5) Doctores
 
-### GET `/doctores`
+Rutas: `/api/v1/doctores`, `/api/v1/doctores/{id}`
+Roles:
+- GET listado: DOCTOR (su recurso) | OPERACIONES
+- POST crear: OPERACIONES
+- PUT: OPERACIONES
+- DELETE: OPERACIONES
+
+POST ejemplo (crear doctor):
 ```json
-[
-  {
-    "id": 8,
-    "persona": {
-      "id": 301,
-      "primerNombre": "Julio",
-      "primerApellido": "García",
-      "tipoDocumento": "CMP",
-      "numeroDocumento": "CMP123456",
-      "fechaNacimiento": "1980-10-10",
-      "genero": "MASCULINO"
-    },
-    "numeroColegiatura": "CMP123456",
-    "especialidadIds": [1, 4]
-  }
-]
+{
+  "persona": { /* persona */ },
+  "numeroColegiatura": "CMP123456",
+  "especialidadIds": [1, 4]
+}
 ```
 
-### GET `/doctores/{id}`
+Response 201:
 ```json
 {
   "id": 8,
-  "persona": {
-    "id": 301,
-    "primerNombre": "Julio",
-    "primerApellido": "García",
-    "tipoDocumento": "CMP",
-    "numeroDocumento": "CMP123456",
-    "fechaNacimiento": "1980-10-10",
-    "genero": "MASCULINO"
-  },
+  "persona": { "id": 301, /* ... */ },
   "numeroColegiatura": "CMP123456",
-  "especialidadIds": [1, 4]
+  "especialidadIds": [1,4]
 }
 ```
 
-### POST / PUT
+Errores comunes:
+- 400: falta de especialidades al crear
+- 409: numeroColegiatura duplicado
+- 409: si tiene horarios/citas al eliminar
+
+---
+
+## 6) Especialidades
+
+Rutas: `/api/v1/especialidades`
+- GET público: devuelve listado de especialidades
+
+Response 200 ejemplo:
+```json
+[
+  { "id": 1, "nombre": "Medicina General" },
+  { "id": 2, "nombre": "Cardiología" }
+]
+```
+
+POST/PUT/DELETE: protegidos por ROLE_OPERACIONES (crear/editar/eliminar especialidades).
+
+---
+
+## 7) Consultorios
+
+Rutas: `/api/v1/consultorios`
+- GET público: listar consultorios
+- POST/PUT/DELETE: ROLE_OPERACIONES
+
+POST ejemplo:
+```json
+{ "nombreONumero": "Consultorio 101" }
+```
+
+Response 201:
+```json
+{ "id": 1, "nombreONumero": "Consultorio 101" }
+```
+
+Errores: 409 si nombre duplicado.
+
+---
+
+## 8) Horarios médicos
+
+Rutas: `/api/v1/horarios-medicos` (según implementación)
+Roles: DOCTOR para su propio horario, OPERACIONES para administración
+
+Request POST ejemplo:
 ```json
 {
-  "persona": {
-    "primerNombre": "Julio",
-    "primerApellido": "García",
-    "tipoDocumento": "CMP",
-    "numeroDocumento": "CMP123456",
-    "fechaNacimiento": "1980-10-10",
-    "genero": "MASCULINO"
-  },
-  "numeroColegiatura": "CMP123456",
-  "especialidadIds": [1, 4]
-}
-```
-Response 201/200 según corresponda. `400` si sin especialidades, `409` colegiatura duplicada.
-
-### DELETE `/doctores/{id}`
-`204`. `409` si tiene horarios o citas vigentes.
-
----
-
-## 6. Especialidades (`/especialidades`)
-
-### GET (público)
-```json
-[
-  { "id": 1, "nombre": "Medicina General" }
-]
-```
-
-### POST / PUT
-```json
-{ "nombre": "Gastroenterología" }
-```
-Response 201/200: `{ "id": 3, "nombre": "Gastroenterología" }`. `409` si nombre repetido.
-
-### DELETE `/especialidades/{id}`
-`204`. `409` si se usa en doctores.
-
----
-
-## 7. Consultorios (`/consultorios`)
-
-### GET (público)
-```json
-[
-  { "id": 7, "nombreONumero": "Consultorio 201" }
-]
-```
-
-### POST / PUT
-```json
-{ "nombreONumero": "Consultorio 301" }
-```
-Response 201/200: `{ "id": 9, "nombreONumero": "Consultorio 301" }`. `409` si duplicado.
-
-### DELETE `/consultorios/{id}`
-`204`. `409` si hay citas asociadas.
-
----
-
-## 8. Horarios médicos (`/horarios-medicos`)
-
-### GET `/horarios-medicos`
-```json
-[
-  {
-    "id": 3,
-    "doctorId": 8,
-    "diaSemana": "LUNES",
-    "horaInicio": "08:00:00",
-    "horaFin": "12:00:00",
-    "esVacaciones": false
-  }
-]
-```
-
-### POST / PUT
-```json
-{
-  "doctorId": 8,
-  "diaSemana": "MARTES",
-  "horaInicio": "14:00:00",
-  "horaFin": "18:00:00",
+  "idDoctor": 8,
+  "diaSemana": "LUNES",                // ENUM: LUNES..DOMINGO
+  "horaInicio": "08:00:00",
+  "horaFin": "12:00:00",
   "esVacaciones": false
 }
 ```
-Response 201/200: horario con `id`. `400` si hora fin <= inicio, `409` por solapamiento.
 
-### DELETE `/horarios-medicos/{id}`
-`204`. `409` si existen citas para ese bloque de tiempo.
+Response 201: objeto horario con `idHorario`.
 
----
-
-## 9. Historias clínicas (`/historias-clinicas`)
-
-### GET `/historias-clinicas`
-```json
-[
-  {
-    "id": 15,
-    "pacienteId": 22,
-    "fechaApertura": "2024-01-05T10:00:00"
-  }
-]
-```
-
-### GET `/historias-clinicas/{id}`
-```json
-{
-  "id": 15,
-  "pacienteId": 22,
-  "fechaApertura": "2024-01-05T10:00:00"
-}
-```
-
-### GET `/historias-clinicas/paciente/{pacienteId}`
-```json
-{
-  "id": 15,
-  "pacienteId": 22,
-  "fechaApertura": "2024-01-05T10:00:00"
-}
-```
-
-### POST
-```json
-{ "pacienteId": 22 }
-```
-Response 201: historia creada.
-
-### PUT `/historias-clinicas/{id}`
-```json
-{
-  "pacienteId": 22,
-  "fechaApertura": "2024-01-05T10:00:00"
-}
-```
-Response 200: historia actualizada. `409` si se intenta cambiar el paciente.
-
-### DELETE
-`204`. `409` si existen registros clínicos dependientes.
+Casos borde:
+- horaInicio >= horaFin -> 400
+- solapamiento con otro horario del mismo doctor -> 409
 
 ---
 
-## 10. Citas (`/citas`)
+## 9) Citas
 
-### GET `/citas`
-```json
-[
-  {
-    "id": 31,
-    "pacienteId": 22,
-    "doctorId": 8,
-    "consultorioId": 7,
-    "fechaCita": "2025-12-01",
-    "horaCita": "09:30:00",
-    "duracionMinutos": 30,
-    "estado": "PENDIENTE",
-    "tipoAtencion": "PRESENCIAL",
-    "precioBase": 150.0,
-    "montoDescuento": 20.0,
-    "costoNetoCita": 130.0
-  }
-]
-```
+Rutas: `/api/v1/citas`, `/api/v1/citas/{id}`
+Roles:
+- Crear: PACIENTE (si es su cita) | RECEPCIONISTA | OPERACIONES
+- Ver: PACIENTE (solo sus citas) | DOCTOR (sus citas) | RECEPCIONISTA | OPERACIONES
+- Editar/Cambiar estado: RECEPCIONISTA | OPERACIONES | DOCTOR (confirmar/actualizar estado)
 
-### GET `/citas/{id}`
+POST crear cita ejemplo:
 ```json
 {
-  "id": 31,
-  "pacienteId": 22,
-  "doctorId": 8,
-  "consultorioId": 7,
+  "idPaciente": 22,
+  "idDoctor": 8,
+  "idConsultorio": 1,
+  "fechaCita": "2025-12-01",
+  "horaCita": "09:30:00",
+  "duracionMinutos": 30,
+  "tipoAtencion": "PRESENCIAL",    // ENUM: PRESENCIAL, TELECONSULTA, DOMICILIARIA
+  "precioBase": 100.00,
+  "montoDescuento": 20.00,
+  "costoNetoCita": 80.00
+}
+```
+
+Response 201:
+```json
+{
+  "idCita": 55,
+  "idPaciente": 22,
+  "idDoctor": 8,
+  "idConsultorio": 1,
   "fechaCita": "2025-12-01",
   "horaCita": "09:30:00",
   "duracionMinutos": 30,
   "estado": "PENDIENTE",
   "tipoAtencion": "PRESENCIAL",
-  "precioBase": 150.0,
-  "montoDescuento": 20.0,
-  "costoNetoCita": 130.0
+  "fechaImpresion": null,
+  "precioBase": 100.00,
+  "montoDescuento": 20.00,
+  "costoNetoCita": 80.00
 }
 ```
 
-### GET `/citas/doctor/{doctorId}?fecha=2025-12-01`
-```json
-[
-  {
-    "id": 31,
-    "pacienteId": 22,
-    "doctorId": 8,
-    "consultorioId": 7,
-    "fechaCita": "2025-12-01",
-    "horaCita": "09:30:00",
-    "duracionMinutos": 30,
-    "estado": "PENDIENTE",
-    "tipoAtencion": "PRESENCIAL",
-    "precioBase": 150.0,
-    "montoDescuento": 20.0,
-    "costoNetoCita": 130.0
-  }
-]
-```
+PUT ejemplo (modificar fecha/hora/estado): enviar objeto completo; response 200. Casos borde:
+- Cita solapada con otra cita del doctor -> 409
+- Fecha pasada -> 400
+- Duración negativa -> 400
 
-### GET `/citas/paciente/{pacienteId}`
-```json
-[
-  {
-    "id": 31,
-    "pacienteId": 22,
-    "doctorId": 8,
-    "consultorioId": 7,
-    "fechaCita": "2025-12-01",
-    "horaCita": "09:30:00",
-    "duracionMinutos": 30,
-    "estado": "PENDIENTE",
-    "tipoAtencion": "PRESENCIAL",
-    "precioBase": 150.0,
-    "montoDescuento": 20.0,
-    "costoNetoCita": 130.0
-  }
-]
-```
-
-### POST / PUT
-```json
-{
-  "pacienteId": 22,
-  "doctorId": 8,
-  "consultorioId": 7,
-  "fechaCita": "2025-12-01",
-  "horaCita": "09:30:00",
-  "duracionMinutos": 30,
-  "estado": "PENDIENTE",
-  "tipoAtencion": "PRESENCIAL",
-  "precioBase": 150.0,
-  "montoDescuento": 20.0,
-  "costoNetoCita": 130.0
-}
-```
-Response 201/200: cita con `id`. `409` si ya existe una cita en la misma franja.
-
-### DELETE `/citas/{id}`
-`204`. `409` si la cita tiene pagos aplicados.
+DELETE `/api/v1/citas/{id}`: 204; 409 si ya está completada y no puede eliminarse según reglas de negocio.
 
 ---
 
-## 11. Pagos (`/pagos`)
+## 10) Registro de citas médicas, historias clínicas y diagnósticos
 
-### GET `/pagos`
-```json
-[
-  {
-    "id": 1,
-    "citaId": 31,
-    "monto": 130.0,
-    "tipoTransaccion": "INGRESO",
-    "estadoPago": "COMPLETADO",
-    "metodoPago": "YAPE",
-    "codigoOperacion": "YAPE-20240511-9988",
-    "fechaPago": "2025-11-22T12:01:00"
-  }
-]
-```
+- POST registro médico (vinculado a `registro_citas_medicas`): crear notas médicas vinculadas a la `historia_clinica`.
+- POST diagnóstico: asociado a registro (campo `codigo_icd10` requiere formato alfanumérico corto).
 
-### GET `/pagos/{id}`
+Ejemplos:
+POST /api/v1/registro-citas
 ```json
 {
-  "id": 1,
-  "citaId": 31,
-  "monto": 130.0,
+  "idHistoriaClinica": 12,
+  "idCita": 55,
+  "notasMedicas": "Paciente con dolor torácico..."
+}
+```
+
+Response 201: registro creado con id.
+
+POST /api/v1/diagnosticos
+```json
+{
+  "idRegistro": 33,
+  "codigoIcd10": "I20",
+  "descripcion": "Angina de pecho"
+}
+```
+
+Response 201: diagnóstico creado.
+
+Errores:
+- 400 código inválido, 404 historia/registros no encontrados.
+
+---
+
+## 11) Pagos y documentos fiscales
+
+Rutas: `/api/v1/pagos`, `/api/v1/documentos-fiscales`
+
+- POST pago (ejemplo):
+```json
+{
+  "idCita": 55,
+  "monto": 80.00,
+  "tipoTransaccion": "INGRESO",  // ENUM: INGRESO, EGRESO
+  "estadoPago": "COMPLETADO",    // DEFAULT: COMPLETADO
+  "metodoPago": "YAPE",          // ENUM con valores listados en DB
+  "codigoOperacion": "YAPE-TRX-123"
+}
+```
+
+Response 201:
+```json
+{
+  "idPago": 101,
+  "idCita": 55,
+  "monto": 80.00,
   "tipoTransaccion": "INGRESO",
   "estadoPago": "COMPLETADO",
   "metodoPago": "YAPE",
-  "codigoOperacion": "YAPE-20240511-9988",
-  "fechaPago": "2025-11-22T12:01:00"
+  "codigoOperacion": "YAPE-TRX-123",
+  "fechaPago": "2025-11-22T18:10:04"
 }
 ```
 
-### GET `/pagos/cita/{citaId}`
-```json
-[
-  {
-    "id": 1,
-    "citaId": 31,
-    "monto": 130.0,
-    "tipoTransaccion": "INGRESO",
-    "estadoPago": "COMPLETADO",
-    "metodoPago": "YAPE",
-    "codigoOperacion": "YAPE-20240511-9988",
-    "fechaPago": "2025-11-22T12:01:00"
-  }
-]
-```
-
-### POST / PUT
+- POST documento fiscal (emitir boleta/factura):
 ```json
 {
-  "citaId": 31,
-  "monto": 130.0,
-  "tipoTransaccion": "INGRESO",
-  "estadoPago": "COMPLETADO",
-  "metodoPago": "YAPE",
-  "codigoOperacion": "YAPE-20240511-9988",
-  "fechaPago": "2025-11-22T12:01:00"
-}
-```
-Response 201/200: pago con `id`. `409` si ya existe un pago con el mismo código de operación.
-
-### DELETE `/pagos/{id}`
-`204`. `409` si existe documento fiscal asociado (eliminar primero el documento).
-
----
-
-## 12. Documentos fiscales (`/documentos-fiscales`)
-
-### GET `/documentos-fiscales`
-```json
-[
-  {
-    "id": 1,
-    "pagoId": 45,
-    "tipoComprobante": "FACTURA",
-    "serie": "F001",
-    "correlativo": 1234,
-    "rucCliente": "20123456789",
-    "nombreClienteFiscal": "ACME SAC"
-  }
-]
-```
-
-### GET `/documentos-fiscales/{id}`
-```json
-{
-  "id": 1,
-  "pagoId": 45,
-  "tipoComprobante": "FACTURA",
+  "idPago": 101,
+  "tipoComprobante": "BOLETA",  // ENUM: BOLETA, FACTURA
   "serie": "F001",
-  "correlativo": 1234,
+  "correlativo": 12345,
   "rucCliente": "20123456789",
-  "nombreClienteFiscal": "ACME SAC"
+  "nombreClienteFiscal": "Juan Pérez"
 }
 ```
 
-### GET `/documentos-fiscales/pago/{pagoId}`
-```json
-[
-  {
-    "id": 1,
-    "pagoId": 45,
-    "tipoComprobante": "FACTURA",
-    "serie": "F001",
-    "correlativo": 1234,
-    "rucCliente": "20123456789",
-    "nombreClienteFiscal": "ACME SAC"
-  }
-]
-```
+Response 201: documento fiscal creado.
 
-### POST / PUT
-```json
-{
-  "pagoId": 45,
-  "tipoComprobante": "FACTURA",
-  "serie": "F001",
-  "correlativo": 1234,
-  "rucCliente": "20123456789",
-  "nombreClienteFiscal": "ACME SAC"
+Errores:
+- 409 serie+correlativo duplicado
+- 404 pago no encontrado
+
+---
+
+## 12) Mensajes comunes / Respuestas HTTP ejemplos
+
+- 401 Unauthorized: {
+  "status":401, "error":"Unauthorized", "message":"Token inválido o expirado", "timestamp":"..."
 }
-```
-Response 201/200: documento con `id`. `409` si la serie/correlativo ya existe.
-
-### DELETE `/documentos-fiscales/{id}`
-`204`. `404` si el id no existe.
-
----
-
-## 13. Matriz de roles
-
-| Recurso | Lectura | Escritura |
-| --- | --- | --- |
-| Auth/login | Público | – |
-| Auth/me | Autenticado | – |
-| Usuarios sistema | `OPERACIONES` | `OPERACIONES` |
-| Personas | `RECEPCIONISTA`, `OPERACIONES` | `OPERACIONES` |
-| Pacientes | `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `RECEPCIONISTA`, `OPERACIONES` (DELETE solo `OPERACIONES`) |
-| Responsables | `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `RECEPCIONISTA`, `OPERACIONES` (DELETE solo `OPERACIONES`) |
-| Doctores | `DOCTOR`, `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `OPERACIONES` |
-| Especialidades | Público | `OPERACIONES` |
-| Consultorios | Público | `OPERACIONES` |
-| Horarios | `DOCTOR`, `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `DOCTOR`, `OPERACIONES` |
-| Historias clínicas | `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES` (paciente con endpoint dedicado) | `DOCTOR`, `OPERACIONES` |
-| Citas | `DOCTOR`, `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `RECEPCIONISTA`, `OPERACIONES` |
-| Pagos | `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES` | `RECEPCIONISTA`, `OPERACIONES` |
-| Documentos fiscales | `RECEPCIONISTA`, `OPERACIONES` | `OPERACIONES` |
+- 403 Forbidden: {
+  "status":403, "error":"Forbidden", "message":"No tiene permisos para acceder a este recurso", "timestamp":"..."
+}
+- 404 Not Found: {
+  "status":404, "error":"Not Found", "message":"Recurso no encontrado", "timestamp":"..."
+}
 
 ---
 
-## 14. Errores comunes
+## Ejemplos end-to-end (flujo típico front-end)
 
-| Código | Situación | Acción sugerida |
-| --- | --- | --- |
-| 400 | Validaciones, datos faltantes, formatos incorrectos | Mostrar mensaje textual y resaltar campos. |
-| 401 | Token ausente/expirado | Forzar logout y redirigir a login. |
-| 403 | Rol insuficiente | Mostrar aviso "No tienes permisos". |
-| 404 | Recurso no encontrado | Mostrar CTA para volver al listado. |
-| 409 | Conflicto (duplicados, dependencias) | Mostrar detalle y sugerir acción previa. |
-| 500 | Error inesperado | Mostrar mensaje genérico y registrar en monitoring. |
+1) Registro de usuario desde app móvil (sin rol OPERACIONES):
+- POST /api/v1/auth/usuarios con body (email,password,persona,rol: RECEPT) pero backend creará rol PACIENTE si el caller no es OPERACIONES.
+- Respuesta 201 con datos del usuario.
+- Cliente hace POST /api/v1/auth/login con email/password y obtiene token.
+- Cliente guarda token y lo envía en `Authorization` para llamadas siguientes.
+
+2) Recepcionista crea paciente y agenda cita:
+- Recepcionista (con token ROLE_RECEPCIONISTA) POST /api/v1/personas -> 201
+- POST /api/v1/pacientes con personaId o persona en body -> 201
+- POST /api/v1/citas -> 201
 
 ---
 
-## 15. Roadmap
+## Notas técnicas y advertencias para front-end engineers
 
-- Próximos módulos (diagnósticos detallados, registro de documentos adjuntos) llegarán como `/api/v2`.
-- Tests legacy con `Hospital`, `SedeHospital`, `CitaMedica` aún no reflejan esta versión.
-- Notificar al equipo backend ante inconsistencias enviando request/response al correo `backend@misalud.com`.
+- Siempre validar mensajes de error del servidor (409) y mostrarlos de forma legible.
+- No dependen del orden de campos en respuestas JSON.
+- Para PUT requests siempre enviar el objeto completo según contrato (no partial PATCH en este API salvo endpoints explícitos).
+- El claim `rol` en JWT determina las autorizaciones; si el front-end necesita mostrar o esconder opciones, confíen en el token pero tengan en cuenta que el servidor es la fuente de verdad.
+- En subida/edición de `urlFotoPerfil` el backend espera una URL (no envíes archivos binarios a ese campo); subir imágenes se hace por un endpoint de archivos (no documentado aquí) o por CDN externo.
 
-> Última actualización: 22 Nov 2025. Mantener copia sincronizada en Confluence (Integraciones / MiSalud API).
+---
+
+Si queréis, puedo generar un archivo Postman/Insomnia collection con ejemplos y variables de entorno (baseUrl, token) o un OpenAPI/Swagger básico con todos los contratos aquí descritos.
