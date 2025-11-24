@@ -557,5 +557,3 @@ Errores:
 - En subida/edición de `urlFotoPerfil` el backend espera una URL (no envíes archivos binarios a ese campo); subir imágenes se hace por un endpoint de archivos (no documentado aquí) o por CDN externo.
 
 ---
-
-Si queréis, puedo generar un archivo Postman/Insomnia collection con ejemplos y variables de entorno (baseUrl, token) o un OpenAPI/Swagger básico con todos los contratos aquí descritos.
