@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -32,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
                                 new UsernamePasswordAuthenticationToken(request.email(), request.password()));
                 UsuarioSistema usuario = usuarioSistemaRepository.findByEmail(request.email())
                                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-                String token = jwtService.generateToken((User) authentication.getPrincipal(),
+                String token = jwtService.generateToken((UserDetails) authentication.getPrincipal(),
                                 Map.of("rol", usuario.getRol().name()));
                 AuthUserResponse userResponse = new AuthUserResponse(
                                 usuario.getId(),
