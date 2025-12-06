@@ -247,7 +247,6 @@ public class CitaServiceImpl implements CitaService {
                                 cita.getSeguro() != null ? cita.getSeguro().getId() : null,
                                 cita.getSeguro() != null ? cita.getSeguro().getNombreAseguradora() : null,
                                 cita.getCopagoEstimado());
-                                        cita.getCopagoEstimado());
         }
 
         private void validarAusenciaMedico(Long doctorId, LocalDate fecha, java.time.LocalTime hora) {
@@ -267,4 +266,4 @@ public class CitaServiceImpl implements CitaService {
                         }
                 }
         }
-}}
+}

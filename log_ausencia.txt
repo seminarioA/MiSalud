@@ -1,0 +1,49 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< com.medx:medx >----------------------------
+[INFO] Building beta 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ medx ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ medx ---
+[INFO] Recompiling the module because of added or removed source files.
+[INFO] Compiling 133 source files with javac [debug parameters release 21] to target\classes
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /C:/Users/ALEJANDRO/Documents/GitHub/MiSalud/src/main/java/com/medx/beta/model/HorarioMedico.java:[38,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[INFO] 1 warning
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/ALEJANDRO/Documents/GitHub/MiSalud/src/main/java/com/medx/beta/repository/HistoriaClinicaRepository.java:[6,2] cannot find symbol
+  symbol: class Repository
+[ERROR] /C:/Users/ALEJANDRO/Documents/GitHub/MiSalud/src/main/java/com/medx/beta/repository/HistoriaClinicaRepository.java:[8,5] cannot find symbol
+  symbol:   class Optional
+  location: interface com.medx.beta.repository.HistoriaClinicaRepository
+[INFO] 2 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.367 s
+[INFO] Finished at: 2025-12-06T13:15:46-05:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project medx: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/ALEJANDRO/Documents/GitHub/MiSalud/src/main/java/com/medx/beta/repository/HistoriaClinicaRepository.java:[6,2] cannot find symbol
+[ERROR]   symbol: class Repository
+[ERROR] /C:/Users/ALEJANDRO/Documents/GitHub/MiSalud/src/main/java/com/medx/beta/repository/HistoriaClinicaRepository.java:[8,5] cannot find symbol
+[ERROR]   symbol:   class Optional
+[ERROR]   location: interface com.medx.beta.repository.HistoriaClinicaRepository
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
