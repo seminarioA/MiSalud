@@ -1,9 +1,14 @@
 package com.medx.beta.dto;
 
-public record DiagnosticoResponse(
-        Long id,
-        Long registroId,
-        String codigoIcd10,
-        String descripcion
-) {}
+import com.medx.beta.model.Diagnostico;
+import java.time.LocalDateTime;
 
+public record DiagnosticoResponse(
+                Long id,
+                Long citaId,
+                Long historiaClinicaId,
+                String cie10,
+                String descripcion,
+                Diagnostico.TipoDiagnostico tipo,
+                LocalDateTime fechaDiagnostico) {
+}

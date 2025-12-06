@@ -5,10 +5,10 @@ WORKDIR /workspace
 
 COPY pom.xml mvnw mvnw.cmd ./
 COPY .mvn .mvn
-RUN ./mvnw -q -DskipTests dependency:go-offline
+RUN ./mvnw -q -Dmaven.test.skip=true dependency:go-offline
 
 COPY src src
-RUN ./mvnw -q -DskipTests package
+RUN ./mvnw -q -Dmaven.test.skip=true package
 
 FROM eclipse-temurin:21-jre-jammy AS runtime
 

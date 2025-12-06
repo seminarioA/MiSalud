@@ -1,12 +1,13 @@
 package com.medx.beta.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import com.medx.beta.model.Diagnostico;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 public record DiagnosticoRequest(
-        @NotNull Long registroId,
-        @NotBlank @Size(max = 10) String codigoIcd10,
-        @Size(max = 255) String descripcion
-) {}
-
+                @NotNull Long citaId,
+                String cie10,
+                @NotNull String descripcion,
+                @NotNull Diagnostico.TipoDiagnostico tipo,
+                LocalDateTime fechaDiagnostico) {
+}

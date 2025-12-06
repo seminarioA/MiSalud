@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -42,9 +43,39 @@ public class PagoServiceImpl implements PagoService {
     public PagoResponse create(PagoRequest request) {
         Cita cita = citaRepository.findById(request.citaId())
                 .orElseThrow(() -> new NotFoundException("Cita no encontrada"));
+
+        // 1. Validate if trying to pay more than needed
+        BigDecimal totalPaid = pagoRepository.findByCitaId(cita.getId()).stream()
+                .map(Pago::getMonto)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal nuevoTotal = totalPaid.add(request.monto());
+        BigDecimal costoNeto = cita.getCostoNetoCita();
+
+        // Allow 10% tolerance or exact check? Let's be strict for now, but allow exact
+        // match.
+        // If cost is 0 (fully covered), maybe allow 0 payments?
+        // For simplicity: If cost > 0 and new total > cost * 1.1 -> Error
+        if (costoNeto != null && costoNeto.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal maxAllowed = costoNeto.multiply(new BigDecimal("1.1")); // 10% buffer
+            if (nuevoTotal.compareTo(maxAllowed) > 0) {
+                throw new IllegalArgumentException("El monto excede el costo neto de la cita (" + costoNeto + ")");
+            }
+        }
+
         Pago pago = new Pago();
         applyRequest(pago, request, cita);
-        return toResponse(pagoRepository.save(pago));
+        pago = pagoRepository.save(pago);
+
+        // 2. Auto-Confirm Logic
+        if (costoNeto != null && nuevoTotal.compareTo(costoNeto) >= 0) {
+            if (cita.getEstado() == Cita.EstadoCita.PENDIENTE) {
+                cita.setEstado(Cita.EstadoCita.CONFIRMADA);
+                citaRepository.save(cita);
+            }
+        }
+
+        return toResponse(pago);
     }
 
     @Override
@@ -67,8 +98,7 @@ public class PagoServiceImpl implements PagoService {
     @Override
     @Transactional(readOnly = true)
     public List<PagoResponse> findByCita(Long citaId) {
-        return pagoRepository.findAll().stream()
-                .filter(p -> p.getCita().getId().equals(citaId))
+        return pagoRepository.findByCitaId(citaId).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -85,15 +115,13 @@ public class PagoServiceImpl implements PagoService {
 
     private PagoResponse toResponse(Pago pago) {
         return new PagoResponse(
-            pago.getId(),
-            pago.getCita().getId(),
-            pago.getMonto(),
-            pago.getTipoTransaccion(),
-            pago.getEstadoPago(),
-            pago.getMetodoPago(),
-            pago.getCodigoOperacion(),
-            pago.getFechaPago()
-        );
+                pago.getId(),
+                pago.getCita().getId(),
+                pago.getMonto(),
+                pago.getTipoTransaccion(),
+                pago.getEstadoPago(),
+                pago.getMetodoPago(),
+                pago.getCodigoOperacion(),
+                pago.getFechaPago());
     }
 }
-

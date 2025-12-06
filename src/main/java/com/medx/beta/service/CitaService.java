@@ -21,5 +21,8 @@ public interface CitaService {
     List<CitaResponse> findByDoctor(Long doctorId, LocalDate fecha);
 
     List<CitaResponse> findByPaciente(Long pacienteId);
-}
 
+    CitaResponse reprogramar(Long id, java.time.LocalDate nuevaFecha, java.time.LocalTime nuevaHora);
+
+    void cambiarEstado(Long id, com.medx.beta.model.Cita.EstadoCita nuevoEstado);
+}

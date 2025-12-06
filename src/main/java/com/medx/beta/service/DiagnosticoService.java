@@ -2,19 +2,16 @@ package com.medx.beta.service;
 
 import com.medx.beta.dto.DiagnosticoRequest;
 import com.medx.beta.dto.DiagnosticoResponse;
-
 import java.util.List;
 
 public interface DiagnosticoService {
-
-    List<DiagnosticoResponse> findAll();
+    DiagnosticoResponse create(DiagnosticoRequest request);
 
     DiagnosticoResponse findById(Long id);
 
-    DiagnosticoResponse create(DiagnosticoRequest request);
+    List<DiagnosticoResponse> findByCitaId(Long citaId);
 
-    DiagnosticoResponse update(Long id, DiagnosticoRequest request);
+    List<DiagnosticoResponse> findByHistoriaClinicaId(Long historiaId);
 
     void delete(Long id);
 }
-
