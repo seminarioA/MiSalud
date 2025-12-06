@@ -18,16 +18,10 @@ public class Paciente {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_persona", nullable = false, unique = true,
-            foreignKey = @ForeignKey(name = "fk_pacientes__personas"))
+    @JoinColumn(name = "id_persona", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_pacientes__personas"))
     private Persona persona;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_seguro", nullable = false, length = 15)
-    private TipoSeguro tipoSeguro;
-
-    public enum TipoSeguro {
-        SIS, ESSALUD, EPS, PARTICULAR, SOAT, SCTR, OTRO
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_seguro", foreignKey = @ForeignKey(name = "fk_pacientes__seguros"))
+    private Seguro seguro;
 }
-

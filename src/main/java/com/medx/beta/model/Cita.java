@@ -23,18 +23,15 @@ public class Cita {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_paciente", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_citas__pacientes"))
+    @JoinColumn(name = "id_paciente", nullable = false, foreignKey = @ForeignKey(name = "fk_citas__pacientes"))
     private Paciente paciente;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_doctor", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_citas__doctores"))
+    @JoinColumn(name = "id_doctor", nullable = false, foreignKey = @ForeignKey(name = "fk_citas__doctores"))
     private Doctor doctor;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_consultorio", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_citas__consultorios"))
+    @JoinColumn(name = "id_consultorio", nullable = false, foreignKey = @ForeignKey(name = "fk_citas__consultorios"))
     private Consultorio consultorio;
 
     @Column(name = "fecha_cita", nullable = false)
@@ -66,6 +63,13 @@ public class Cita {
     @Column(name = "costo_neto_cita", nullable = false, precision = 10, scale = 2)
     private BigDecimal costoNetoCita;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_seguro_cita", foreignKey = @ForeignKey(name = "fk_citas__seguros"))
+    private Seguro seguro;
+
+    @Column(name = "copago_estimado", precision = 10, scale = 2)
+    private BigDecimal copagoEstimado;
+
     public enum EstadoCita {
         PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA, NO_ASISTIO
     }
@@ -74,4 +78,3 @@ public class Cita {
         PRESENCIAL, TELECONSULTA, DOMICILIARIA
     }
 }
-

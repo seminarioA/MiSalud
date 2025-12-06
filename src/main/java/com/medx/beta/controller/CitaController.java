@@ -35,7 +35,7 @@ public class CitaController {
     @GetMapping("/doctor/{doctorId}")
     @PreAuthorize("hasAnyRole('DOCTOR','RECEPCIONISTA','OPERACIONES')")
     public ResponseEntity<List<CitaResponse>> porDoctor(@PathVariable Long doctorId,
-                                                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         return ResponseEntity.ok(citaService.findByDoctor(doctorId, fecha));
     }
 
@@ -54,7 +54,7 @@ public class CitaController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('RECEPCIONISTA','OPERACIONES')")
     public ResponseEntity<CitaResponse> actualizar(@PathVariable Long id,
-                                                   @Valid @RequestBody CitaRequest request) {
+            @Valid @RequestBody CitaRequest request) {
         return ResponseEntity.ok(citaService.update(id, request));
     }
 
@@ -64,5 +64,20 @@ public class CitaController {
         citaService.delete(id);
         return ResponseEntity.noContent().build();
     }
-}
 
+    @PatchMapping("/{id}/reprogramacion")
+    @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'OPERACIONES')")
+    public ResponseEntity<CitaResponse> reprogramar(@PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) java.time.LocalTime hora) {
+        return ResponseEntity.ok(citaService.reprogramar(id, fecha, hora));
+    }
+
+    @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'RECEPCIONISTA', 'OPERACIONES')")
+    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id,
+            @RequestParam com.medx.beta.model.Cita.EstadoCita nuevoEstado) {
+        citaService.cambiarEstado(id, nuevoEstado);
+        return ResponseEntity.noContent().build();
+    }
+}

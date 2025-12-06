@@ -42,14 +42,21 @@ public class PacienteServiceImpl implements PacienteService {
         return toResponse(paciente);
     }
 
+    private final com.medx.beta.repository.SeguroRepository seguroRepository;
+
     @Override
     public PacienteResponse create(PacienteRequest request) {
         Persona persona = new Persona();
         applyPersona(persona, request.persona());
         Persona savedPersona = personaRepository.save(persona);
+
         Paciente paciente = new Paciente();
         paciente.setPersona(savedPersona);
-        paciente.setTipoSeguro(request.tipoSeguro());
+
+        com.medx.beta.model.Seguro seguro = seguroRepository.findById(request.seguroId())
+                .orElseThrow(() -> new NotFoundException("Seguro no encontrado"));
+        paciente.setSeguro(seguro);
+
         return toResponse(pacienteRepository.save(paciente));
     }
 
@@ -60,7 +67,11 @@ public class PacienteServiceImpl implements PacienteService {
         Persona persona = paciente.getPersona();
         applyPersona(persona, request.persona());
         personaRepository.save(persona);
-        paciente.setTipoSeguro(request.tipoSeguro());
+
+        com.medx.beta.model.Seguro seguro = seguroRepository.findById(request.seguroId())
+                .orElseThrow(() -> new NotFoundException("Seguro no encontrado"));
+        paciente.setSeguro(seguro);
+
         return toResponse(pacienteRepository.save(paciente));
     }
 
@@ -89,7 +100,7 @@ public class PacienteServiceImpl implements PacienteService {
         return new PacienteResponse(
                 paciente.getId(),
                 persona,
-                paciente.getTipoSeguro()
-        );
+                paciente.getSeguro() != null ? paciente.getSeguro().getId() : null,
+                paciente.getSeguro() != null ? paciente.getSeguro().getNombreAseguradora() : null);
     }
 }

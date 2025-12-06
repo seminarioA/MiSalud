@@ -12,8 +12,22 @@
 | Roles | `PACIENTE`, `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES`. |
 | Formatos | JSON UTF-8. Fecha: `yyyy-MM-dd`. Hora: `HH:mm:ss`. Timestamp: `yyyy-MM-dd'T'HH:mm:ss`. |
 | Errores | Estructura estándar: `{ "status": 400, "error": "Bad Request", "message": "Detalle", "timestamp": "2025-11-22T18:10:04" }`. |
-| Seguridad | `SecurityDevConfig` + `JwtAuthenticationFilter` + `@PreAuthorize`. |
+| Seguridad | `SecurityDevConfig` + `JwtAuthenticationFilter` + `@PreAuthorize`. **CORS Abierto (*)** por perfil dev. |
 | Buenas prácticas | Cachear catálogos, exponer mensajes backend, limpiar sesión ante `401`, mostrar CTA ante `404`. |
+
+---
+
+## 0.1 Política de Seguridad y CORS (Contexto Desarrollo)
+
+> **NOTA IMPORTANTE:** Esta configuración aplica al perfil `dev` (`SecurityDevConfig.java`).
+
+| Pregunta | Respuesta / Política |
+| --- | --- |
+| **¿Quién puede acceder?** | **Cualquier Origen (`*`)**. Se permiten peticiones desde `localhost:3000`, aplicaciones móviles, Postman, etc. |
+| **¿Quién NO puede acceder?** | Nadie es bloqueado por origen en este entorno. Sin embargo, usuarios **sin token válido** son rechazados en rutas privadas. |
+| **¿Cuándo aplica?** | Siempre que la aplicación corra con el perfil de desarrollo activo. |
+| **¿Por qué SI?** | Para facilitar la integración ágil entre equipos Frontend y Backend trabajando en puertos locales distintos sin bloqueos de navegador. |
+| **¿Por qué NO?** | No se bloquea nada para evitar fricción en etapas tempranas. **En Producción se restringirá a dominios oficiales.** |
 
 ---
 
@@ -619,6 +633,23 @@ Response 201/200: cita con `id`. `409` si ya existe una cita en la misma franja.
 ### DELETE `/citas/{id}`
 `204`. `409` si la cita tiene pagos aplicados.
 
+### PATCH `/citas/{id}/reprogramacion`
+Permite cambiar fecha y hora de una cita existente (si no está finalizada).
+- **Roles:** `RECEPCIONISTA`, `OPERACIONES`
+- **Query Params:**
+  - `fecha` (Date, ISO): Nueva fecha `yyyy-MM-dd`.
+  - `hora` (Time, ISO): Nueva hora `HH:mm:ss`.
+- **Response 200**: Objeto Cita actualizado.
+- **Errores**: `400` si hay conflicto de horario (Double Booking) o fecha pasada. `409` si estado no permite cambios.
+
+### PATCH `/citas/{id}/estado`
+Cambio de ciclo de vida (confirmar, cancelar, completar).
+- **Roles:** `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES`
+- **Query Params:**
+  - `nuevoEstado`: Enum (`PENDIENTE`, `CONFIRMADA`, `CANCELADA`, `COMPLETADA`, `NO_ASISTIO`).
+- **Response 204**: Sin cuerpo.
+- **Errores**: `409` transición de estado inválida.
+
 ---
 
 ## 11. Pagos (`/pagos`)
@@ -766,7 +797,7 @@ Response 201/200: documento con `id`. `409` si la serie/correlativo ya existe.
 | Consultorios | Público | `OPERACIONES` |
 | Horarios | `DOCTOR`, `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `DOCTOR`, `OPERACIONES` |
 | Historias clínicas | `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES` (paciente con endpoint dedicado) | `DOCTOR`, `OPERACIONES` |
-| Citas | `DOCTOR`, `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `RECEPCIONISTA`, `OPERACIONES` |
+| Citas | `DOCTOR`, `PACIENTE`, `RECEPCIONISTA`, `OPERACIONES` | `DOCTOR` (Estado), `RECEPCIONISTA`, `OPERACIONES` |
 | Pagos | `DOCTOR`, `RECEPCIONISTA`, `OPERACIONES` | `RECEPCIONISTA`, `OPERACIONES` |
 | Documentos fiscales | `RECEPCIONISTA`, `OPERACIONES` | `OPERACIONES` |
 
