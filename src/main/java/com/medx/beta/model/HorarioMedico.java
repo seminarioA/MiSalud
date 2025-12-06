@@ -20,8 +20,7 @@ public class HorarioMedico {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_doctor", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_horarios_medicos__doctores"))
+    @JoinColumn(name = "id_doctor", nullable = false, foreignKey = @ForeignKey(name = "fk_horarios_medicos__doctores"))
     private Doctor doctor;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +33,7 @@ public class HorarioMedico {
     @Column(name = "hora_fin", nullable = false)
     private LocalTime horaFin;
 
+    @Builder.Default
     @Column(name = "es_vacaciones", nullable = false)
     private Boolean esVacaciones = Boolean.FALSE;
 
@@ -41,4 +41,3 @@ public class HorarioMedico {
         LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO
     }
 }
-

@@ -1,0 +1,15 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------------< com.medx:medx >----------------------------
+[INFO] Building beta 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.0:clean (default-clean) @ medx ---
+[INFO] Deleting C:\Users\ALEJANDRO\Documents\GitHub\MiSalud\target
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.768 s
+[INFO] Finished at: 2025-12-06T13:28:59-05:00
+[INFO] ------------------------------------------------------------------------
