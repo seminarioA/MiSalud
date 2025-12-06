@@ -32,6 +32,7 @@ public class CitaServiceImpl implements CitaService {
         private final DoctorRepository doctorRepository;
         private final ConsultorioRepository consultorioRepository;
         private final SeguroRepository seguroRepository;
+        private final com.medx.beta.repository.AusenciaMedicoRepository ausenciaRepository;
 
         @Override
         @Transactional(readOnly = true)
@@ -58,6 +59,8 @@ public class CitaServiceImpl implements CitaService {
                 Consultorio consultorio = consultorioRepository.findById(request.consultorioId())
                                 .orElseThrow(() -> new NotFoundException("Consultorio no encontrado"));
 
+                validarAusenciaMedico(doctor.getId(), request.fechaCita(), request.horaCita());
+
                 boolean ocupado = citaRepository.existsByDoctorIdAndFechaCitaAndHoraCitaAndEstadoNot(
                                 doctor.getId(),
                                 request.fechaCita(),
@@ -66,6 +69,16 @@ public class CitaServiceImpl implements CitaService {
 
                 if (ocupado) {
                         throw new IllegalArgumentException("El doctor ya tiene una cita agendada en ese horario.");
+                }
+
+                boolean consultorioOcupado = citaRepository.existsByConsultorioIdAndFechaCitaAndHoraCitaAndEstadoNot(
+                                consultorio.getId(),
+                                request.fechaCita(),
+                                request.horaCita(),
+                                Cita.EstadoCita.CANCELADA);
+
+                if (consultorioOcupado) {
+                        throw new IllegalArgumentException("El consultorio ya está ocupado en ese horario.");
                 }
 
                 Cita cita = new Cita();
@@ -122,6 +135,8 @@ public class CitaServiceImpl implements CitaService {
                                         "No se puede reprogramar una cita que está " + cita.getEstado());
                 }
 
+                validarAusenciaMedico(cita.getDoctor().getId(), nuevaFecha, nuevaHora);
+
                 // Validar Disponibilidad
                 boolean ocupado = citaRepository.existsByDoctorIdAndFechaCitaAndHoraCitaAndEstadoNot(
                                 cita.getDoctor().getId(),
@@ -131,6 +146,16 @@ public class CitaServiceImpl implements CitaService {
 
                 if (ocupado) {
                         throw new IllegalArgumentException("El doctor ya tiene una cita agendada en ese horario.");
+                }
+
+                boolean consultorioOcupado = citaRepository.existsByConsultorioIdAndFechaCitaAndHoraCitaAndEstadoNot(
+                                cita.getConsultorio().getId(),
+                                nuevaFecha,
+                                nuevaHora,
+                                Cita.EstadoCita.CANCELADA);
+
+                if (consultorioOcupado) {
+                        throw new IllegalArgumentException("El consultorio ya está ocupado en ese horario.");
                 }
 
                 cita.setFechaCita(nuevaFecha);
@@ -222,5 +247,24 @@ public class CitaServiceImpl implements CitaService {
                                 cita.getSeguro() != null ? cita.getSeguro().getId() : null,
                                 cita.getSeguro() != null ? cita.getSeguro().getNombreAseguradora() : null,
                                 cita.getCopagoEstimado());
+                                        cita.getCopagoEstimado());
         }
-}
+
+        private void validarAusenciaMedico(Long doctorId, LocalDate fecha, java.time.LocalTime hora) {
+                List<com.medx.beta.model.AusenciaMedico> ausencias = ausenciaRepository.findByDoctorAndDate(doctorId,
+                                fecha);
+                for (com.medx.beta.model.AusenciaMedico a : ausencias) {
+                        boolean esDiaCompleto = a.getHoraInicio() == null || a.getHoraFin() == null;
+                        if (esDiaCompleto) {
+                                throw new IllegalArgumentException(
+                                                "El doctor no está disponible por: " + a.getMotivo());
+                        }
+                        // Check time overlap
+                        // If appointment time is within the absence range
+                        if (!hora.isBefore(a.getHoraInicio()) && hora.isBefore(a.getHoraFin())) {
+                                throw new IllegalArgumentException(
+                                                "El doctor no está disponible en ese horario por: " + a.getMotivo());
+                        }
+                }
+        }
+}}

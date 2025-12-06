@@ -11,6 +11,12 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
             java.time.LocalTime hora,
             Cita.EstadoCita estado);
 
+    boolean existsByConsultorioIdAndFechaCitaAndHoraCitaAndEstadoNot(
+            Long consultorioId,
+            java.time.LocalDate fecha,
+            java.time.LocalTime hora,
+            Cita.EstadoCita estado);
+
     java.util.List<Cita> findByDoctorIdAndFechaCita(Long doctorId, java.time.LocalDate fecha);
 
     java.util.List<Cita> findByPacienteId(Long pacienteId);
