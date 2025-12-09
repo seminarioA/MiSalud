@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.medx.beta.dto.AuthResponse;
 import com.medx.beta.dto.AuthUserResponse;
 import com.medx.beta.dto.LoginRequest;
+import com.medx.beta.dto.RegisterPatientRequest;
+import com.medx.beta.dto.RegisterPatientResponse;
 import com.medx.beta.dto.UsuarioSistemaRequest;
 import com.medx.beta.dto.UsuarioSistemaResponse;
 import com.medx.beta.service.AuthService;
@@ -35,6 +37,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.autenticar(request));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterPatientResponse> register(@Valid @RequestBody RegisterPatientRequest request) {
+        return ResponseEntity.ok(authService.registrarPaciente(request));
     }
 
     @GetMapping("/me")
