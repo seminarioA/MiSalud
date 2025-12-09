@@ -56,7 +56,8 @@ public class AuthController {
     }
 
     @PostMapping("/usuarios")
-    @PreAuthorize("hasRole('OPERACIONES')")
+    // Permitir registro público: cualquiera puede crear su usuario; la lógica en el service evitará
+    // la creación de usuarios con rol OPERACIONES salvo que el caller tenga dicho rol.
     public ResponseEntity<UsuarioSistemaResponse> crear(@Valid @RequestBody UsuarioSistemaRequest request) {
         return ResponseEntity.ok(usuarioSistemaService.create(request));
     }

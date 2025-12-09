@@ -12,6 +12,9 @@ import com.medx.beta.repository.UsuarioSistemaRepository;
 import com.medx.beta.service.PersonService;
 import com.medx.beta.service.UsuarioSistemaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +59,16 @@ public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
         usuario.setPersona(persona);
         usuario.setEmail(request.email());
         usuario.setPasswordHash(passwordEncoder.encode(request.password()));
-        usuario.setRol(request.rol());
+
+        // Determinar rol: si el caller tiene ROLE_OPERACIONES, permitir el rol del request;
+        // de lo contrario forzar rol PACIENTE
+        UsuarioSistema.Rol requestedRol = request.rol();
+        if (callerHasRoleOperaciones()) {
+            usuario.setRol(requestedRol);
+        } else {
+            usuario.setRol(UsuarioSistema.Rol.PACIENTE);
+        }
+
         return toResponse(usuarioSistemaRepository.save(usuario));
     }
 
@@ -75,7 +87,12 @@ public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
         if (request.password() != null && !request.password().isBlank()) {
             usuario.setPasswordHash(passwordEncoder.encode(request.password()));
         }
-        usuario.setRol(request.rol());
+
+        // Solo ROLE_OPERACIONES puede cambiar el rol
+        if (callerHasRoleOperaciones()) {
+            usuario.setRol(request.rol());
+        }
+
         return toResponse(usuarioSistemaRepository.save(usuario));
     }
 
@@ -107,5 +124,14 @@ public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
         persona.setGenero(request.genero());
         persona.setNumeroTelefono(request.numeroTelefono());
         persona.setUrlFotoPerfil(request.urlFotoPerfil());
+    }
+
+    private boolean callerHasRoleOperaciones() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities() == null) return false;
+        for (GrantedAuthority ga : auth.getAuthorities()) {
+            if (ga.getAuthority().equals("ROLE_OPERACIONES")) return true;
+        }
+        return false;
     }
 }
