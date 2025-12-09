@@ -88,11 +88,13 @@ public class AuthServiceImpl implements AuthService {
 
                 Paciente paciente = Paciente.builder()
                                 .persona(savedPersona)
+                                .tipoSeguro("PARTICULAR")
                                 .build();
                 if (request.seguroId() != null) {
                         Seguro seguro = seguroRepository.findById(request.seguroId())
                                         .orElseThrow(() -> new NotFoundException("Seguro no encontrado"));
                         paciente.setSeguro(seguro);
+                        paciente.setTipoSeguro(seguro.getTipoSeguro());
                 }
                 Paciente savedPaciente = pacienteRepository.save(paciente);
 

@@ -24,4 +24,8 @@ public class Paciente {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_seguro", foreignKey = @ForeignKey(name = "fk_pacientes__seguros"))
     private Seguro seguro;
+
+    @Builder.Default
+    @Column(name = "tipo_seguro", nullable = false, length = 50)
+    private String tipoSeguro = "PARTICULAR";
 }
