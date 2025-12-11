@@ -80,4 +80,10 @@ public class CitaController {
         citaService.cambiarEstado(id, nuevoEstado);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/mis-citas")
+    @PreAuthorize("hasRole('PACIENTE')")
+    public ResponseEntity<List<CitaResponse>> misCitas() {
+        return ResponseEntity.ok(citaService.findMine());
+    }
 }

@@ -204,6 +204,18 @@ public class CitaServiceImpl implements CitaService {
                 citaRepository.save(cita);
         }
 
+        @Override
+        @Transactional(readOnly = true)
+        public List<CitaResponse> findMine() {
+                Long pacienteId = getPacienteIdFromCurrentUserIfPaciente();
+                if (pacienteId == null) {
+                        throw new IllegalStateException("Solo PACIENTE puede listar sus propias citas");
+                }
+                return citaRepository.findByPacienteId(pacienteId).stream()
+                                .map(this::toResponse)
+                                .toList();
+        }
+
         private void applyRequest(Cita cita, CitaRequest request, Paciente paciente, Doctor doctor,
                         Consultorio consultorio) {
                 cita.setPaciente(paciente);
