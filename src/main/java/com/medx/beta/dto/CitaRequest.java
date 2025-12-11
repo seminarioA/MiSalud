@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record CitaRequest(
-                @NotNull Long pacienteId,
+                Long pacienteId,
                 @NotNull Long doctorId,
                 @NotNull Long consultorioId,
                 @NotNull LocalDate fechaCita,
