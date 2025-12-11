@@ -102,14 +102,11 @@ public class CitaServiceImpl implements CitaService {
                         if (!cita.getPaciente().getId().equals(pacienteActualId)) {
                                 throw new IllegalStateException("No tiene permisos para editar esta cita");
                         }
-                        // Evitar cambiar la cita a otro paciente diferente del propietario
-                        if (request.pacienteId() != null && !request.pacienteId().equals(pacienteActualId)) {
-                                throw new IllegalArgumentException("El paciente de la cita no coincide con el propietario");
-                        }
                 }
 
-                Paciente paciente = pacienteRepository.findById(
-                                pacienteActualId != null ? pacienteActualId : request.pacienteId())
+                // Resolver paciente: si es PACIENTE autenticado, ignorar cualquier pacienteId del request
+                Long pacienteIdParaActualizar = pacienteActualId != null ? pacienteActualId : request.pacienteId();
+                Paciente paciente = pacienteRepository.findById(pacienteIdParaActualizar)
                                 .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
                 Doctor doctor = doctorRepository.findById(request.doctorId())
                                 .orElseThrow(() -> new NotFoundException("Doctor no encontrado"));
@@ -304,11 +301,12 @@ public class CitaServiceImpl implements CitaService {
                 if (usuario == null || usuario.getRol() != UsuarioSistema.Rol.PACIENTE) {
                         return null;
                 }
-                // UsuarioSistema tiene referencia a Persona, obtenemos el Paciente por persona
-                com.medx.beta.model.Paciente paciente = pacienteRepository.findAll().stream()
-                                .filter(p -> p.getPersona() != null && p.getPersona().getId().equals(usuario.getPersona().getId()))
-                                .findFirst()
-                                .orElse(null);
-                return paciente != null ? paciente.getId() : null;
+                Long personaId = usuario.getPersona() != null ? usuario.getPersona().getId() : null;
+                if (personaId == null) {
+                        throw new IllegalStateException("El usuario PACIENTE no tiene una Persona asociada");
+                }
+                com.medx.beta.model.Paciente paciente = pacienteRepository.findByPersonaId(personaId)
+                                .orElseThrow(() -> new IllegalStateException("No se encontró el Paciente asociado a la Persona del usuario"));
+                return paciente.getId();
         }
 }
