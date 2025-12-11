@@ -6,6 +6,6 @@ public record DoctorResponse(
         Long id,
         PersonaResponse persona,
         String numeroColegiatura,
-        List<Long> especialidadIds
+        List<Long> especialidadIds,
+        List<String> especialidades
 ) {}
-
