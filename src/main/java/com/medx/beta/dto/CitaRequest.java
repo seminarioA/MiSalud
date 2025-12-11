@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public record CitaRequest(
@@ -18,7 +17,6 @@ public record CitaRequest(
                 @NotNull Integer duracionMinutos,
                 @NotNull Cita.EstadoCita estado,
                 @NotNull Cita.TipoAtencion tipoAtencion,
-                LocalDateTime fechaImpresion,
                 @NotNull @DecimalMin("0.00") BigDecimal precioBase,
                 @NotNull @DecimalMin("0.00") BigDecimal montoDescuento,
                 Long seguroId) {

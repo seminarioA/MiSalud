@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -50,9 +49,6 @@ public class Cita {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_atencion", nullable = false, length = 15)
     private TipoAtencion tipoAtencion;
-
-    @Column(name = "fecha_impresion")
-    private LocalDateTime fechaImpresion;
 
     @Column(name = "precio_base", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioBase;

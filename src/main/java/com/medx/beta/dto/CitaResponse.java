@@ -4,7 +4,6 @@ import com.medx.beta.model.Cita;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public record CitaResponse(
@@ -17,10 +16,8 @@ public record CitaResponse(
                 Integer duracionMinutos,
                 Cita.EstadoCita estado,
                 Cita.TipoAtencion tipoAtencion,
-                LocalDateTime fechaImpresion,
                 BigDecimal precioBase,
                 BigDecimal montoDescuento,
-
                 BigDecimal costoNetoCita,
                 Long seguroId,
                 String nombreSeguro,
