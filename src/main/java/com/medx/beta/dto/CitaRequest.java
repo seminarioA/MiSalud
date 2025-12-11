@@ -21,7 +21,5 @@ public record CitaRequest(
                 LocalDateTime fechaImpresion,
                 @NotNull @DecimalMin("0.00") BigDecimal precioBase,
                 @NotNull @DecimalMin("0.00") BigDecimal montoDescuento,
-
-                BigDecimal costoNetoCita, // Made optional as it can be calculated
                 Long seguroId) {
 }

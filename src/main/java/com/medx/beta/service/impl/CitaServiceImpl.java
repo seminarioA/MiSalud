@@ -206,7 +206,7 @@ public class CitaServiceImpl implements CitaService {
 
                 if (seguro != null) {
                         cita.setSeguro(seguro);
-                        // Calculate Copay
+                        // Calcular copago
                         BigDecimal copago;
                         if (seguro.getCopagoFijo() != null && seguro.getCopagoFijo().compareTo(BigDecimal.ZERO) > 0) {
                                 copago = seguro.getCopagoFijo();
@@ -215,17 +215,18 @@ public class CitaServiceImpl implements CitaService {
                                 BigDecimal patientShare = BigDecimal.ONE.subtract(coverage);
                                 copago = request.precioBase().multiply(patientShare);
                         }
+                        // Normalizar: mínimo 0 y escala 2
+                        copago = copago.max(BigDecimal.ZERO).setScale(2, java.math.RoundingMode.HALF_UP);
                         cita.setCopagoEstimado(copago);
-                        cita.setCostoNetoCita(copago); // Update net cost to be the patient's responsibility
+                        // El costo neto de la cita para el paciente con seguro es el copago estimado
+                        cita.setCostoNetoCita(copago);
                 } else {
                         cita.setSeguro(null);
                         cita.setCopagoEstimado(BigDecimal.ZERO);
-                        // Default logic if no insurance
-                        if (request.costoNetoCita() != null) {
-                                cita.setCostoNetoCita(request.costoNetoCita());
-                        } else {
-                                cita.setCostoNetoCita(request.precioBase().subtract(request.montoDescuento()));
-                        }
+                        // Sin seguro: costo neto derivado = precioBase - descuento
+                        BigDecimal neto = request.precioBase().subtract(request.montoDescuento());
+                        neto = neto.max(BigDecimal.ZERO).setScale(2, java.math.RoundingMode.HALF_UP);
+                        cita.setCostoNetoCita(neto);
                 }
         }
 
