@@ -91,11 +91,7 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Doctor no encontrado"));
         // Eliminar relaciones Doctor-Especialidad
-        doctorEspecialidadRepository.deleteAll(
-                doctorEspecialidadRepository.findAll().stream()
-                        .filter(de -> de.getDoctor().equals(doctor))
-                        .toList()
-        );
+        doctorEspecialidadRepository.deleteByDoctorId(doctor.getId());
         // Guardar referencia a la persona antes de eliminar el doctor
         Persona persona = doctor.getPersona();
         // Eliminar el doctor
@@ -124,11 +120,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     private void syncEspecialidades(Doctor doctor, List<Long> especialidadIds) {
-        doctorEspecialidadRepository.deleteAll(
-                doctorEspecialidadRepository.findAll().stream()
-                        .filter(de -> de.getDoctor().getId().equals(doctor.getId()))
-                        .toList()
-        );
+        doctorEspecialidadRepository.deleteByDoctorId(doctor.getId());
         if (especialidadIds == null || especialidadIds.isEmpty()) {
             return;
         }
@@ -148,15 +140,14 @@ public class DoctorServiceImpl implements DoctorService {
 
     private DoctorResponse toResponse(Doctor doctor) {
         PersonaResponse persona = personService.findById(doctor.getPersona().getId());
-        List<Long> especialidadIds = doctorEspecialidadRepository.findAll().stream()
-                .filter(de -> de.getDoctor().getId().equals(doctor.getId()))
-                .map(de -> de.getEspecialidad().getId())
-                .toList();
+        List<Long> especialidadIds = doctorEspecialidadRepository.findEspecialidadIdsByDoctorId(doctor.getId());
+        List<String> especialidadesNombres = doctorEspecialidadRepository.findEspecialidadNombresByDoctorId(doctor.getId());
         return new DoctorResponse(
                 doctor.getId(),
                 persona,
                 doctor.getNumeroColegiatura(),
-                especialidadIds
+                especialidadIds,
+                especialidadesNombres
         );
     }
 

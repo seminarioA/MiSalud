@@ -5,6 +5,7 @@ import com.medx.beta.model.Cita;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 public record CitaResponse(
                 Long id,
@@ -12,6 +13,7 @@ public record CitaResponse(
                 String nombreCompletoPaciente,
                 Long doctorId,
                 String nombreCompletoDoctor,
+                List<String> especialidadesDoctor,
                 Long consultorioId,
                 String nombreConsultorio,
                 LocalDate fechaCita,

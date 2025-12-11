@@ -38,6 +38,7 @@ public class CitaServiceImpl implements CitaService {
         private final SeguroRepository seguroRepository;
         private final com.medx.beta.repository.AusenciaMedicoRepository ausenciaRepository;
         private final UsuarioSistemaRepository usuarioSistemaRepository;
+        private final com.medx.beta.repository.DoctorEspecialidadRepository doctorEspecialidadRepository;
 
         @Override
         @Transactional(readOnly = true)
@@ -278,6 +279,7 @@ public class CitaServiceImpl implements CitaService {
                 }
 
                 String nombreCompletoDoctor = null;
+                List<String> especialidadesDoctor = List.of();
                 if (cita.getDoctor() != null && cita.getDoctor().getPersona() != null) {
                         var d = cita.getDoctor().getPersona();
                         nombreCompletoDoctor = String.join(" ",
@@ -285,6 +287,8 @@ public class CitaServiceImpl implements CitaService {
                                         d.getSegundoNombre() != null ? d.getSegundoNombre() : "",
                                         d.getPrimerApellido(),
                                         d.getSegundoApellido() != null ? d.getSegundoApellido() : "").replaceAll("\\s+", " ").trim();
+                        especialidadesDoctor = doctorEspecialidadRepository
+                                        .findEspecialidadNombresByDoctorId(cita.getDoctor().getId());
                 }
 
                 String nombreConsultorio = cita.getConsultorio() != null ? cita.getConsultorio().getNombreONumero() : null;
@@ -295,6 +299,7 @@ public class CitaServiceImpl implements CitaService {
                                 nombreCompletoPaciente,
                                 cita.getDoctor() != null ? cita.getDoctor().getId() : null,
                                 nombreCompletoDoctor,
+                                especialidadesDoctor,
                                 cita.getConsultorio() != null ? cita.getConsultorio().getId() : null,
                                 nombreConsultorio,
                                 cita.getFechaCita(),
