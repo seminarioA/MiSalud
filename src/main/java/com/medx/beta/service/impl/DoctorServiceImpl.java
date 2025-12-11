@@ -23,6 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.medx.beta.repository.UsuarioSistemaRepository;
+import com.medx.beta.repository.PacienteRepository;
+import com.medx.beta.repository.ResponsablePacienteRepository;
+import com.medx.beta.model.UsuarioSistema;
+import com.medx.beta.model.Paciente;
+import com.medx.beta.model.ResponsablePaciente;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +40,9 @@ public class DoctorServiceImpl implements DoctorService {
     private final EspecialidadRepository especialidadRepository;
     private final DoctorEspecialidadRepository doctorEspecialidadRepository;
     private final PersonService personService;
+    private final UsuarioSistemaRepository usuarioSistemaRepository;
+    private final PacienteRepository pacienteRepository;
+    private final ResponsablePacienteRepository responsablePacienteRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -81,12 +90,37 @@ public class DoctorServiceImpl implements DoctorService {
     public void delete(Long id) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Doctor no encontrado"));
+        // Eliminar relaciones Doctor-Especialidad
         doctorEspecialidadRepository.deleteAll(
                 doctorEspecialidadRepository.findAll().stream()
                         .filter(de -> de.getDoctor().equals(doctor))
                         .toList()
         );
+        // Guardar referencia a la persona antes de eliminar el doctor
+        Persona persona = doctor.getPersona();
+        // Eliminar el doctor
         doctorRepository.delete(doctor);
+
+        if (persona != null) {
+            Long personaId = persona.getId();
+            // Eliminar UsuarioSistema asociado a la misma Persona
+            usuarioSistemaRepository.findAll().stream()
+                    .filter(us -> us.getPersona() != null && us.getPersona().getId().equals(personaId))
+                    .forEach(usuarioSistemaRepository::delete);
+
+            // Eliminar registros de ResponsablePaciente donde esta persona es responsable
+            responsablePacienteRepository.findAll().stream()
+                    .filter(rp -> rp.getPersonaResponsable() != null && rp.getPersonaResponsable().getId().equals(personaId))
+                    .forEach(responsablePacienteRepository::delete);
+
+            // Eliminar Paciente asociado a la misma Persona
+            pacienteRepository.findAll().stream()
+                    .filter(p -> p.getPersona() != null && p.getPersona().getId().equals(personaId))
+                    .forEach(pacienteRepository::delete);
+
+            // Finalmente, eliminar la persona asociada
+            personaRepository.delete(persona);
+        }
     }
 
     private void syncEspecialidades(Doctor doctor, List<Long> especialidadIds) {
