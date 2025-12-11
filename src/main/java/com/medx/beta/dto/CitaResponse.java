@@ -9,8 +9,11 @@ import java.time.LocalTime;
 public record CitaResponse(
                 Long id,
                 Long pacienteId,
+                String nombreCompletoPaciente,
                 Long doctorId,
+                String nombreCompletoDoctor,
                 Long consultorioId,
+                String nombreConsultorio,
                 LocalDate fechaCita,
                 LocalTime horaCita,
                 Integer duracionMinutos,
