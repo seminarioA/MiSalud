@@ -16,6 +16,10 @@ import com.medx.beta.repository.PersonaRepository;
 import com.medx.beta.repository.UsuarioSistemaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
+import com.medx.beta.repository.EspecialidadRepository;
+import com.medx.beta.repository.ConsultorioRepository;
+import com.medx.beta.model.Especialidad;
+import com.medx.beta.model.Consultorio;
 
 @Component
 @RequiredArgsConstructor
@@ -27,10 +31,14 @@ public class ReferenceDataLoader implements CommandLineRunner {
     private final PersonaRepository personaRepository;
     private final UsuarioSistemaRepository usuarioSistemaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EspecialidadRepository especialidadRepository;
+    private final ConsultorioRepository consultorioRepository;
 
     @Override
     public void run(String... args) {
         seedSeguros();
+        seedEspecialidades();
+        seedConsultorios();
         seedUsuarioBryan();
     }
 
@@ -55,6 +63,55 @@ public class ReferenceDataLoader implements CommandLineRunner {
                     LOGGER.info("Seguro de referencia '{}' registrado", saved.getNombreAseguradora());
                     return saved;
                 }));
+    }
+
+    private void seedEspecialidades() {
+        List<String> nombres = List.of(
+                "Medicina General",
+                "Pediatría",
+                "Ginecología",
+                "Cardiología",
+                "Dermatología",
+                "Oftalmología",
+                "Odontología",
+                "Traumatología",
+                "Neurología",
+                "Psiquiatría"
+        );
+
+        List<Especialidad> existentes = especialidadRepository.findAll();
+        java.util.Set<String> existentesSet = existentes.stream()
+                .map(Especialidad::getNombre)
+                .collect(java.util.stream.Collectors.toSet());
+        nombres.stream()
+                .filter(n -> !existentesSet.contains(n))
+                .forEach(n -> {
+                    Especialidad e = Especialidad.builder().nombre(n).build();
+                    especialidadRepository.save(e);
+                    LOGGER.info("Especialidad de referencia '{}' registrada", n);
+                });
+    }
+
+    private void seedConsultorios() {
+        List<String> nombres = List.of(
+                "CONS-101",
+                "CONS-102",
+                "CONS-103",
+                "CONS-201",
+                "CONS-202",
+                "CONS-203"
+        );
+        List<Consultorio> existentes = consultorioRepository.findAll();
+        java.util.Set<String> existentesSet = existentes.stream()
+                .map(Consultorio::getNombreONumero)
+                .collect(java.util.stream.Collectors.toSet());
+        nombres.stream()
+                .filter(n -> !existentesSet.contains(n))
+                .forEach(n -> {
+                    Consultorio c = Consultorio.builder().nombreONumero(n).build();
+                    consultorioRepository.save(c);
+                    LOGGER.info("Consultorio de referencia '{}' registrado", n);
+                });
     }
 
     // Seeder para el usuario Bryan Joel Yovera Vilchez (21 años, masculino)
