@@ -191,7 +191,8 @@ public class CitaServiceImpl implements CitaService {
                 cita.setDuracionMinutos(request.duracionMinutos());
                 cita.setEstado(request.estado());
                 cita.setTipoAtencion(request.tipoAtencion());
-                cita.setFechaImpresion(request.fechaImpresion());
+                // Removido: fechaImpresion ya no se gestiona via request/response
+                // cita.setFechaImpresion(request.fechaImpresion());
                 cita.setPrecioBase(request.precioBase());
                 cita.setMontoDescuento(request.montoDescuento());
 
@@ -241,7 +242,6 @@ public class CitaServiceImpl implements CitaService {
                                 cita.getDuracionMinutos(),
                                 cita.getEstado(),
                                 cita.getTipoAtencion(),
-                                cita.getFechaImpresion(),
                                 cita.getPrecioBase(),
                                 cita.getMontoDescuento(),
                                 cita.getCostoNetoCita(),
