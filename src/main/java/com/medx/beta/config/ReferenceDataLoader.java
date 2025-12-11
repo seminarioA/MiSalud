@@ -10,6 +10,12 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import com.medx.beta.model.Persona;
+import com.medx.beta.model.UsuarioSistema;
+import com.medx.beta.repository.PersonaRepository;
+import com.medx.beta.repository.UsuarioSistemaRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
@@ -18,10 +24,14 @@ public class ReferenceDataLoader implements CommandLineRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReferenceDataLoader.class);
 
     private final SeguroRepository seguroRepository;
+    private final PersonaRepository personaRepository;
+    private final UsuarioSistemaRepository usuarioSistemaRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
         seedSeguros();
+        seedUsuarioBryan();
     }
 
     private void seedSeguros() {
@@ -45,6 +55,42 @@ public class ReferenceDataLoader implements CommandLineRunner {
                     LOGGER.info("Seguro de referencia '{}' registrado", saved.getNombreAseguradora());
                     return saved;
                 }));
+    }
+
+    // Seeder para el usuario Bryan Joel Yovera Vilchez (21 años, masculino)
+    private void seedUsuarioBryan() {
+        final String email = "yoverabryan@gmail.com";
+        final String rawPassword = "finalAngular?2025";
+        // Si ya existe un usuario con ese email, no sembrar de nuevo
+        if (usuarioSistemaRepository.findByEmail(email).isPresent()) {
+            LOGGER.info("Usuario de referencia '{}' ya existe, omitiendo seeding", email);
+            return;
+        }
+
+        // Construir Persona requerida (documento y campos obligatorios)
+        Persona persona = Persona.builder()
+                .primerNombre("Bryan")
+                .segundoNombre("Joel")
+                .primerApellido("Yovera")
+                .segundoApellido("Vilchez")
+                .tipoDocumento(Persona.TipoDocumento.DNI)
+                .numeroDocumento("12345678")
+                // 21 años al 2025-12-10
+                .fechaNacimiento(LocalDate.of(2004, 12, 10))
+                .genero(Persona.Genero.MASCULINO)
+                .numeroTelefono(null)
+                .urlFotoPerfil(null)
+                .build();
+        persona = personaRepository.save(persona);
+
+        UsuarioSistema usuario = UsuarioSistema.builder()
+                .persona(persona)
+                .email(email)
+                .passwordHash(passwordEncoder.encode(rawPassword))
+                .rol(UsuarioSistema.Rol.OPERACIONES)
+                .build();
+        usuarioSistemaRepository.save(usuario);
+        LOGGER.info("Usuario de referencia '{}' registrado con rol {}", email, usuario.getRol());
     }
 
     private record SeguroSeed(String nombreAseguradora, String tipoSeguro, BigDecimal coberturaPorcentaje,
