@@ -267,11 +267,36 @@ public class CitaServiceImpl implements CitaService {
         }
 
         private CitaResponse toResponse(Cita cita) {
+                String nombreCompletoPaciente = null;
+                if (cita.getPaciente() != null && cita.getPaciente().getPersona() != null) {
+                        var p = cita.getPaciente().getPersona();
+                        nombreCompletoPaciente = String.join(" ",
+                                        p.getPrimerNombre(),
+                                        p.getSegundoNombre() != null ? p.getSegundoNombre() : "",
+                                        p.getPrimerApellido(),
+                                        p.getSegundoApellido() != null ? p.getSegundoApellido() : "").replaceAll("\\s+", " ").trim();
+                }
+
+                String nombreCompletoDoctor = null;
+                if (cita.getDoctor() != null && cita.getDoctor().getPersona() != null) {
+                        var d = cita.getDoctor().getPersona();
+                        nombreCompletoDoctor = String.join(" ",
+                                        d.getPrimerNombre(),
+                                        d.getSegundoNombre() != null ? d.getSegundoNombre() : "",
+                                        d.getPrimerApellido(),
+                                        d.getSegundoApellido() != null ? d.getSegundoApellido() : "").replaceAll("\\s+", " ").trim();
+                }
+
+                String nombreConsultorio = cita.getConsultorio() != null ? cita.getConsultorio().getNombreONumero() : null;
+
                 return new CitaResponse(
                                 cita.getId(),
-                                cita.getPaciente().getId(),
-                                cita.getDoctor().getId(),
-                                cita.getConsultorio().getId(),
+                                cita.getPaciente() != null ? cita.getPaciente().getId() : null,
+                                nombreCompletoPaciente,
+                                cita.getDoctor() != null ? cita.getDoctor().getId() : null,
+                                nombreCompletoDoctor,
+                                cita.getConsultorio() != null ? cita.getConsultorio().getId() : null,
+                                nombreConsultorio,
                                 cita.getFechaCita(),
                                 cita.getHoraCita(),
                                 cita.getDuracionMinutos(),
