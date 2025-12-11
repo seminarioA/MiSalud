@@ -52,14 +52,14 @@ public class CitaController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('RECEPCIONISTA','OPERACIONES')")
+    @PreAuthorize("hasAnyRole('PACIENTE','RECEPCIONISTA','OPERACIONES')")
     public ResponseEntity<CitaResponse> actualizar(@PathVariable Long id,
             @Valid @RequestBody CitaRequest request) {
         return ResponseEntity.ok(citaService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('OPERACIONES')")
+    @PreAuthorize("hasAnyRole('PACIENTE','OPERACIONES')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         citaService.delete(id);
         return ResponseEntity.noContent().build();

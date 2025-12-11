@@ -8,13 +8,17 @@ import com.medx.beta.model.Consultorio;
 import com.medx.beta.model.Doctor;
 import com.medx.beta.model.Paciente;
 import com.medx.beta.model.Seguro;
+import com.medx.beta.model.UsuarioSistema;
 import com.medx.beta.repository.CitaRepository;
 import com.medx.beta.repository.ConsultorioRepository;
 import com.medx.beta.repository.DoctorRepository;
 import com.medx.beta.repository.PacienteRepository;
 import com.medx.beta.repository.SeguroRepository;
+import com.medx.beta.repository.UsuarioSistemaRepository;
 import com.medx.beta.service.CitaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +37,7 @@ public class CitaServiceImpl implements CitaService {
         private final ConsultorioRepository consultorioRepository;
         private final SeguroRepository seguroRepository;
         private final com.medx.beta.repository.AusenciaMedicoRepository ausenciaRepository;
+        private final UsuarioSistemaRepository usuarioSistemaRepository;
 
         @Override
         @Transactional(readOnly = true)
@@ -90,7 +95,21 @@ public class CitaServiceImpl implements CitaService {
         public CitaResponse update(Long id, CitaRequest request) {
                 Cita cita = citaRepository.findById(id)
                                 .orElseThrow(() -> new NotFoundException("Cita no encontrada"));
-                Paciente paciente = pacienteRepository.findById(request.pacienteId())
+
+                // Validar propiedad si el usuario autenticado es PACIENTE
+                Long pacienteActualId = getPacienteIdFromCurrentUserIfPaciente();
+                if (pacienteActualId != null) {
+                        if (!cita.getPaciente().getId().equals(pacienteActualId)) {
+                                throw new IllegalStateException("No tiene permisos para editar esta cita");
+                        }
+                        // Evitar cambiar la cita a otro paciente diferente del propietario
+                        if (request.pacienteId() != null && !request.pacienteId().equals(pacienteActualId)) {
+                                throw new IllegalArgumentException("El paciente de la cita no coincide con el propietario");
+                        }
+                }
+
+                Paciente paciente = pacienteRepository.findById(
+                                pacienteActualId != null ? pacienteActualId : request.pacienteId())
                                 .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
                 Doctor doctor = doctorRepository.findById(request.doctorId())
                                 .orElseThrow(() -> new NotFoundException("Doctor no encontrado"));
@@ -104,6 +123,13 @@ public class CitaServiceImpl implements CitaService {
         public void delete(Long id) {
                 Cita cita = citaRepository.findById(id)
                                 .orElseThrow(() -> new NotFoundException("Cita no encontrada"));
+
+                // Validar propiedad si el usuario autenticado es PACIENTE
+                Long pacienteActualId = getPacienteIdFromCurrentUserIfPaciente();
+                if (pacienteActualId != null && !cita.getPaciente().getId().equals(pacienteActualId)) {
+                        throw new IllegalStateException("No tiene permisos para eliminar esta cita");
+                }
+
                 citaRepository.delete(cita);
         }
 
@@ -266,5 +292,23 @@ public class CitaServiceImpl implements CitaService {
                                                 "El doctor no está disponible en ese horario por: " + a.getMotivo());
                         }
                 }
+        }
+
+        private Long getPacienteIdFromCurrentUserIfPaciente() {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || !authentication.isAuthenticated()) {
+                        return null;
+                }
+                String email = authentication.getName();
+                UsuarioSistema usuario = usuarioSistemaRepository.findByEmail(email).orElse(null);
+                if (usuario == null || usuario.getRol() != UsuarioSistema.Rol.PACIENTE) {
+                        return null;
+                }
+                // UsuarioSistema tiene referencia a Persona, obtenemos el Paciente por persona
+                com.medx.beta.model.Paciente paciente = pacienteRepository.findAll().stream()
+                                .filter(p -> p.getPersona() != null && p.getPersona().getId().equals(usuario.getPersona().getId()))
+                                .findFirst()
+                                .orElse(null);
+                return paciente != null ? paciente.getId() : null;
         }
 }
