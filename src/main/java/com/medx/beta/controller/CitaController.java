@@ -46,7 +46,7 @@ public class CitaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('RECEPCIONISTA','OPERACIONES')")
+    @PreAuthorize("hasAnyRole('PACIENTE','RECEPCIONISTA','OPERACIONES')")
     public ResponseEntity<CitaResponse> crear(@Valid @RequestBody CitaRequest request) {
         return ResponseEntity.ok(citaService.create(request));
     }
